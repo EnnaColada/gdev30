@@ -19,22 +19,34 @@ vec2 newCoords = vec2(vertexPosition.x - rotOrigin.x, vertexPosition.y - rotOrig
 
 void main()
 {
+    // float cosAbs = abs(cos(time));
+    // float sinAbs = abs(sin(time));
+    // float PI = 3.14159265358;
+    float g = sin(time) * 10/360 + 10/360;
+    float cosAbs = cos(g);
+    float sinAbs = sin(g);
+
+
     //glow
-    if (effect.x == 1.0f)
+    if (effect.x == 1.0f){
         shaderColor = vertexColor * glow;
-    else
+    }
+    else{
         shaderColor = vertexColor;
+    }
     
     //rotate counter-clockwise
     if (effect.y == 1.0f){
-        vec2 rotatedCoords = vec2(cos(time) * newCoords.x - sin(time) * newCoords.y, sin(time) * newCoords.x + cos(time) * newCoords.y);
+        // vec2 rotatedCoords = vec2(clamp((cosAbs * newCoords.x - sinAbs * newCoords.y),newCoords.x*0.9,newCoords.x), clamp((sinAbs * newCoords.x + cosAbs * newCoords.y),newCoords.y*0.9,newCoords.y));
+        vec2 rotatedCoords = vec2(cosAbs * newCoords.x - sinAbs * newCoords.y, sinAbs * newCoords.x + cosAbs * newCoords.y);
         gl_Position = vec4(rotatedCoords.x + rotOrigin.x, rotatedCoords.y + rotOrigin.y, vertexPosition.z, 1.0f);
     }
     //rotate clockwise
     else if(effect.y == 2.0f){
-        vec2 rotatedCoords = vec2(cos(time) * newCoords.x + sin(time) * newCoords.y, -sin(time) * newCoords.x + cos(time) * newCoords.y);
+        vec2 rotatedCoords = vec2(cosAbs * newCoords.x + sinAbs * newCoords.y, -sinAbs * newCoords.x + cosAbs * newCoords.y);
         gl_Position = vec4(rotatedCoords.x + rotOrigin.x, rotatedCoords.y + rotOrigin.y, vertexPosition.z, 1.0f);
     }
-    else
+    else{
         gl_Position = vec4(vertexPosition.x,vertexPosition.y,vertexPosition.z, 1.0f);
+    }
 }
