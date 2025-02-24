@@ -46,6 +46,15 @@ void main()
         vec2 rotatedCoords = vec2(cosAbs * newCoords.x + sinAbs * newCoords.y, -sinAbs * newCoords.x + cosAbs * newCoords.y);
         gl_Position = vec4(rotatedCoords.x + rotOrigin.x, rotatedCoords.y + rotOrigin.y, vertexPosition.z, 1.0f);
     }
+    else if(effect.y == 3.0f || effect.y == 4.0f){
+        //if it doesn't work out ⬇️
+        gl_Position = vec4(rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.x,
+                          -rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.y, vertexPosition.z, 1.0f);
+        // vec2 rotatedCoords = vec2(cos(time) * newCoords.x + sin(time) * newCoords.y, 
+        //                      -sin(time) * newCoords.x + cos(time) * newCoords.y);
+
+        // gl_Position = vec4(rotatedCoords.x + rotOrigin.x, rotatedCoords.y + rotOrigin.y, vertexPosition.z, 1.0f);
+    }
     else{
         gl_Position = vec4(vertexPosition.x,vertexPosition.y,vertexPosition.z, 1.0f);
     }
