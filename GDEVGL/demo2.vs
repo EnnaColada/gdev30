@@ -26,14 +26,18 @@ void main()
     float cosAbs = cos(g);
     float sinAbs = sin(g);
 
+    float flapSpeed = 3.0;  // Controls how fast the butterfly flaps
+    float flapAngle = sin(time * flapSpeed) * 0.3; // Oscillating angle for wing movement
+    float scaleFactor = sin(time * flapSpeed);
+    float cosFlap = cos(flapAngle);
+    float sinFlap = sin(flapAngle);
+
 
     //glow
-    if (effect.x == 1.0f){
+    if (effect.x == 1.0f)
         shaderColor = vertexColor * glow;
-    }
-    else{
+    else
         shaderColor = vertexColor;
-    }
     
     //rotate counter-clockwise
     if (effect.y == 1.0f){
@@ -46,16 +50,34 @@ void main()
         vec2 rotatedCoords = vec2(cosAbs * newCoords.x + sinAbs * newCoords.y, -sinAbs * newCoords.x + cosAbs * newCoords.y);
         gl_Position = vec4(rotatedCoords.x + rotOrigin.x, rotatedCoords.y + rotOrigin.y, vertexPosition.z, 1.0f);
     }
-    else if(effect.y == 3.0f || effect.y == 4.0f){
+    else if(effect.y == 3.0f){
         //if it doesn't work out ⬇️
-        gl_Position = vec4(rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.x,
-                          -rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.y, vertexPosition.z, 1.0f);
-        // vec2 rotatedCoords = vec2(cos(time) * newCoords.x + sin(time) * newCoords.y, 
-        //                      -sin(time) * newCoords.x + cos(time) * newCoords.y);
+        //gl_Position = vec4(rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.x,
+        //                  -rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.y, vertexPosition.z, 1.0f);
 
-        // gl_Position = vec4(rotatedCoords.x + rotOrigin.x, rotatedCoords.y + rotOrigin.y, vertexPosition.z, 1.0f);
+        // vec2 rotatedCoords = vec2(rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.x,
+        //                   -rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.y);
+        // vec2 flapCoords = vec2(cosFlap * newCoords.x + sinFlap * newCoords.y, 
+        //                          -sinFlap * newCoords.x + cosFlap * newCoords.y);
+      
+        // //vec2 finalCoords = vec2((rotatedCoords + flapCoords)/2);
+        // float verticalMotion = sin(time * flapSpeed) * 0.1;
+
+        // gl_Position = vec4(finalCoords.x + rotOrigin.x, 
+        //                    finalCoords.y + rotOrigin.y + verticalMotion, 
+        //                    vertexPosition.z, 1.0f);
+        
+        vec2 flapCoords = vec2(cosFlap * newCoords.x - sinFlap * newCoords.y * scaleFactor, 
+                               sinFlap * newCoords.x + cosFlap * newCoords.y * scaleFactor);
+        // vec2 rotatedCoords = vec2(rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.x,
+        //                          -rotOrigin.x * cos(time) + rotOrigin.y * sin(time) + vertexPosition.y);   
+        // vec2 final = (flapCoords + rotatedCoords)/2;                    
+        float verticalMotion = sin(time * flapSpeed) * 0.1; 
+
+        gl_Position = vec4(flapCoords.x + rotOrigin.x, flapCoords.y + rotOrigin.y + verticalMotion, 
+                           vertexPosition.z, 1.0f);
     }
-    else{
+    else
         gl_Position = vec4(vertexPosition.x,vertexPosition.y,vertexPosition.z, 1.0f);
-    }
+
 }
