@@ -26,6 +26,5 @@ void main()
     vec4 colorA = texture(texture1, shaderTexCoord);
     vec4 colorB = texture(texture2, shaderTexCoord) * vec4(shaderColor, 1.0f);
     fragmentColor = mix(colorA, colorB, 0.5f * sin(time));
-
 }
 
