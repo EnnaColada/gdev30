@@ -23,8 +23,11 @@ void main()
     // fragmentColor = vec4(shaderColor, 1.0f) * texture(texture1, shaderTexCoord);
 
     //mixer
-    vec4 colorA = texture(texture1, shaderTexCoord);
-    vec4 colorB = texture(texture2, shaderTexCoord) * vec4(shaderColor, 1.0f);
-    fragmentColor = mix(colorA, colorB, 0.5f * sin(time));
+    vec4 colorA = texture(texture1, shaderTexCoord) ;
+    vec4 colorB = texture(texture2, shaderTexCoord)* vec4(shaderColor, 1.0f);
+    if ((sin(time+1)*2)>0.2)
+        fragmentColor = mix(colorA, colorB, 0.5f * sin(time+0.75));
+    else
+        fragmentColor = mix(colorA, colorB, 0.5f * sin(time-2.14));
 }
 
