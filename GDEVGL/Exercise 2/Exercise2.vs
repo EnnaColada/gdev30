@@ -17,6 +17,7 @@ vec2 rotate(vec2 position, vec2 origin, float g){
 
 void main()
 {
+    // float newTime = sin(time+1)*2;
     float newTime = sin((time+2.5)/2)*2;
     float t = clamp(newTime, -2, 0);
     vec3 scaledVertexPosition = vertexPosition*0.5;
@@ -28,7 +29,13 @@ void main()
         gl_Position = vec4((vertexPosition*0.95)*clamp(abs(newTime), 0, 1), 1.0f);
         shaderColor = vertexColor * (piece == 0.0f? 1:sin(newTime));               // Background pieces (piece == 0.0f) remain unchanged; 
     }                                                                              // other pieces darken the further they move
-    
+
+    // // not the one I submitted
+    // if (newTime > 0.2){
+    //     gl_Position = vec4((vertexPosition*0.95)*clamp(abs(newTime), 0, 2), 1.0f);
+    //     shaderColor = vertexColor * (piece == 0.0f? 1:sin(newTime));            
+    // }        
+
     // Shattering effect: pieces move, rotate, and change color before returning to their original position
     else{
         //top right piece (poly3)
