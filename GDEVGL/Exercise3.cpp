@@ -27,17 +27,55 @@ GLFWwindow *pWindow;
 float vertices[] =
 {
     // position (x, y, z)       color (r, g, b)
-    -0.50f, -0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
-     0.50f, -0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
-    -0.50f,  0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
-     0.50f,  0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
-    -0.50f,  0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
-     0.50f, -0.50f, -1.00f,     1.0f, 1.0f, 1.0f
+    // -0.50f, -0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
+    //  0.50f, -0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
+    // -0.50f,  0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
+    //  0.50f,  0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
+    // -0.50f,  0.50f, -1.00f,     1.0f, 1.0f, 1.0f,
+    //  0.50f, -0.50f, -1.00f,     1.0f, 1.0f, 1.0f
+
+    // -0.125f, 0.000f, 0.000f,    1.0f, 1.0f, 1.0f,
+    // -0.250f, 0.217f, 0.000f,    1.0f, 1.0f, 1.0f,
+    // -0.125f, 0.424f, 0.000f,    1.0f, 1.0f, 1.0f,
+    //  0.125f, 0.000f, 0.000f,    1.0f, 1.0f, 1.0f,
+    //  0.250f, 0.217f, 0.000f,    1.0f, 1.0f, 1.0f,
+    //  0.125f, 0.424f, 0.000f,    1.0f, 1.0f, 1.0f,
+
+    //leg
+    -0.125f,-0.500f, 0.000f,    1.0f, 1.0f, 1.0f,
+    -0.250f,-0.500f, 0.217f,    1.0f, 1.0f, 1.0f,
+    -0.125f,-0.500f, 0.424f,    1.0f, 1.0f, 1.0f,
+     0.125f,-0.500f, 0.000f,    1.0f, 1.0f, 1.0f,
+     0.250f,-0.500f, 0.217f,    1.0f, 1.0f, 1.0f,
+     0.125f,-0.500f, 0.424f,    1.0f, 1.0f, 1.0f,
+
+    -0.125f,-0.200f, 0.000f,    1.0f, 1.0f, 1.0f,
+    -0.250f,-0.200f, 0.217f,    1.0f, 1.0f, 1.0f,
+    -0.125f,-0.200f, 0.424f,    1.0f, 1.0f, 1.0f,
+     0.125f,-0.200f, 0.000f,    1.0f, 1.0f, 1.0f,
+     0.250f,-0.200f, 0.217f,    1.0f, 1.0f, 1.0f,
+     0.125f,-0.200f, 0.424f,    1.0f, 1.0f, 1.0f,
+
+
+};
+
+GLuint indices[] = {
+    0, 1, 2, 
+    0, 2, 3,
+    2, 3, 5,
+    3, 4, 5,
+    0, 6, 11,
+    0, 5, 11
+
+
+
+
 };
 
 // define OpenGL object IDs to represent the vertex array and the shader program in the GPU
 GLuint vao;         // vertex array object (stores the render state for our vertex array)
 GLuint vbo;         // vertex buffer object (reserves GPU memory for our vertex array)
+GLuint ebo;        // vertex buffer object (reserves GPU memory for our vertex array)
 GLuint shader;      // combined vertex and fragment shader
 
 // called by the main function to do initial setup, such as uploading vertex
@@ -47,6 +85,7 @@ bool setup()
     // generate the VAO and VBO objects and store their IDs in vao and vbo, respectively
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
 
     // bind the newly-created VAO to make it the current one that OpenGL will apply state changes to
     glBindVertexArray(vao);
@@ -54,6 +93,10 @@ bool setup()
     // upload our vertex array data to the newly-created VBO
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    //added ebo for uploading index array data to the newly create EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // on the VAO, register the current VBO with the following vertex attribute layout:
     // - layout location 0...
@@ -97,31 +140,31 @@ void render()
                               0.1f, 100.0f);
 
     matrix = glm::translate(matrix, glm::vec3(0.0f, 0.0f, -5.0f));
-    matrix = glm::rotate(matrix, glm::radians(-90.0f),
-                                 glm::vec3(1.0f, 0.0f, 0.0f));
-    matrix = glm::scale(matrix, glm::vec3(5.0f, 5.0f, 1.0f));
+    // matrix = glm::rotate(matrix, glm::radians(-90.0f),
+    //                              glm::vec3(1.0f, 0.0f, 0.0f));
+    // matrix = glm::scale(matrix, glm::vec3(5.0f, 5.0f, 1.0f));
 
 
 // Camera 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    //Camera Direction
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-    //Right axis
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); 
-    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-    //Up axis
-    glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
-    //Look at
-    //glm::mat4 view;
-    // view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), 
-  	//                    glm::vec3(0.0f, 0.0f, 0.0f), 
-  	// 	                  glm::vec3(0.0f, 1.0f, 0.0f));
-    const float radius = 10.0f;
-    float camX = sin(glfwGetTime()) * radius;
-    float camZ = cos(glfwGetTime()) * radius;
-    glm::mat4 view;
-    view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));  
+    // glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+    // //Camera Direction
+    // glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    // glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+    // //Right axis
+    // glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); 
+    // glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+    // //Up axis
+    // glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+    // //Look at
+    // //glm::mat4 view;
+    // // view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), 
+  	// //                    glm::vec3(0.0f, 0.0f, 0.0f), 
+  	// // 	                  glm::vec3(0.0f, 1.0f, 0.0f));
+    // const float radius = 10.0f;
+    // float camX = sin(glfwGetTime()) * radius;
+    // float camZ = cos(glfwGetTime()) * radius;
+    // glm::mat4 view;
+    // view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));  
 
 
 
@@ -130,8 +173,8 @@ void render()
 
     // ... draw our triangles
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
-}
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+}  
 
 /*****************************************************************************/
 
