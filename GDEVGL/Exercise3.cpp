@@ -387,6 +387,8 @@ bool setup()
     // important: if you have more vertex arrays to draw, make sure you separately define them
     // with unique VAO and VBO IDs, and follow the same process above to upload them to the GPU
 
+    // glEnable(GL_CULL_FACE);
+
     // load our shader program
     shader = gdevLoadShader("Exercise3.vs", "Exercise3.fs");
     if (! shader)
@@ -398,6 +400,8 @@ bool setup()
 // called by the main function to do rendering per frame
 void render()
 {
+    float timer = glfwGetTime();
+
     //camera
     glm::mat4 view;
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
@@ -415,14 +419,36 @@ void render()
                              (float) WINDOW_WIDTH / WINDOW_HEIGHT,
                               0.1f, 100.0f);
 
+    //set the default view of the camera
     matrix *= view;
+    
+    //middle amogus
+    matrix = glm::rotate(matrix, glm::radians(timer*100), glm::vec3(0.0f, 1.0f, 0.0f)); //rotate along the y axis
 
-    glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"),
-                       1, GL_FALSE, glm::value_ptr(matrix));
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+
+    //right amogus
+    matrix = glm::rotate(matrix, -glm::radians(timer*100), glm::vec3(0.0f, 1.0f, 0.0f)); //reset rotation
+    matrix = glm::translate(matrix, glm::vec3(3.0f, 0.0f, 0.0f)); //move 3 units right
+    matrix = glm::scale(matrix, glm::vec3(1.5f, 1.5f, 1.5f)); //scale to 1.5 times the size
+    matrix = glm::rotate(matrix, glm::radians(timer*100), glm::vec3(0.0f, 0.0f, 1.0f)); //rotate along the z axis
+
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+
+    //left amogus
+    matrix = glm::scale(matrix, glm::vec3(0.67f, 0.67f, 0.67f)); //reset the scale
+    matrix = glm::rotate(matrix, -glm::radians(timer*100), glm::vec3(0.0f, 0.0f, 1.0f)); //reset rotation
+    matrix = glm::translate(matrix, glm::vec3(-6.0f, 0.0f, 0.0f)); //move 6 units left (3 units left of middle amogus)
+    matrix = glm::rotate(matrix, glm::radians(-timer*100), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate along the x axis
+    matrix = glm::scale(matrix, glm::vec3(0.5f, 0.5f, 0.5f)); //scale to 0.5 the size
+    
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
 
     // ... draw our triangles
-    glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(vao);    
 
     processInput(pWindow);
 }
