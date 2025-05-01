@@ -648,9 +648,9 @@ bool setup()
     if (! shader)
         return false;
 
-    texture1 = gdevLoadTexture("cloth.jpg", GL_MIRRORED_REPEAT, true, true);
+    texture1 = gdevLoadTexture("cloth.jpg", GL_REPEAT, true, true);
     if (! texture1) return false;
-    texture2 = gdevLoadTexture("glass.png", GL_MIRRORED_REPEAT, true, true);
+    texture2 = gdevLoadTexture("glass.png", GL_REPEAT, true, true);
     if (! texture2) return false;
 
     return true;
@@ -660,10 +660,6 @@ bool setup()
 void render()
 {
     float timer = glfwGetTime();
-
-    //camera
-    glm::mat4 view;
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
     // clear the whole frame
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -686,40 +682,54 @@ void render()
     glUniform1f(glGetUniformLocation(shader, "time"), time);
 
 
-    glm::mat4 matrix;
-    matrix = glm::perspective(glm::radians(60.0f),
+    glm::mat4 projectionViewMatrix;
+    projectionViewMatrix = glm::perspective(glm::radians(60.0f),
                              (float) WINDOW_WIDTH / WINDOW_HEIGHT,
                               0.1f, 100.0f);
+    //camera
+    glm::mat4 view;
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
     //set the default view of the camera
-    matrix *= view;
+    projectionViewMatrix *= view;
     
     //middle amogus
-    matrix = glm::rotate(matrix, glm::radians(timer*100), glm::vec3(0.0f, 1.0f, 0.0f)); //rotate along the y axis
+    glm::mat4 modelMatrix = glm::mat4(1.0f); // set to identity first!
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+
+    glm::mat4 normalMatrix;
+    normalMatrix = glm::transpose(glm::inverse(modelMatrix));
+
+    // projectionViewMatrix *= modelMatrix;
+    //projectionViewMatrix = glm::rotate(projectionViewMatrix, glm::radians(timer*100), glm::vec3(0.0f, 1.0f, 0.0f)); //rotate along the y axis
 
     glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
-    glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
-    //right amogus
-    matrix = glm::rotate(matrix, -glm::radians(timer*100), glm::vec3(0.0f, 1.0f, 0.0f)); //reset rotation
+    // //right amogus
+    // projectionViewMatrix = glm::rotate(projectionViewMatrix, -glm::radians(timer*100), glm::vec3(0.0f, 1.0f, 0.0f)); //reset rotation
 
-    matrix = glm::translate(matrix, glm::vec3(3.0f, 0.0f, 0.0f)); //move 3 units right
-    matrix = glm::rotate(matrix, glm::radians(timer*100), glm::vec3(0.0f, 0.0f, 1.0f)); //rotate along the z axis
-    matrix = glm::scale(matrix, glm::vec3(1.0f, 2.0f, 1.0f)); //scale to 1.5 times the size
+    // projectionViewMatrix = glm::translate(projectionViewMatrix, glm::vec3(3.0f, 0.0f, 0.0f)); //move 3 units right
+    // projectionViewMatrix = glm::rotate(projectionViewMatrix, glm::radians(timer*100), glm::vec3(0.0f, 0.0f, 1.0f)); //rotate along the z axis
+    // projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 2.0f, 1.0f)); //scale to 1.5 times the size
     
-    glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
-    glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+    // glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
+    // glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
 
-    //left amogus
-    matrix = glm::scale(matrix, glm::vec3(1.0f, 0.5f, 1.0f)); //reset the scale
-    matrix = glm::rotate(matrix, -glm::radians(timer*100), glm::vec3(0.0f, 0.0f, 1.0f)); //reset rotation
+    // //left amogus
+    // projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 0.5f, 1.0f)); //reset the scale
+    // projectionViewMatrix = glm::rotate(projectionViewMatrix, -glm::radians(timer*100), glm::vec3(0.0f, 0.0f, 1.0f)); //reset rotation
     
-    matrix = glm::translate(matrix, glm::vec3(-6.0f, 0.0f, 0.0f)); //move 6 units left (3 units left of middle amogus)
-    matrix = glm::rotate(matrix, glm::radians(-timer*100), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate along the x axis
-    matrix = glm::scale(matrix, glm::vec3(1.0f, 0.3f, 0.5f)); //scale to 0.5 the size
+    // projectionViewMatrix = glm::translate(projectionViewMatrix, glm::vec3(-6.0f, 0.0f, 0.0f)); //move 6 units left (3 units left of middle amogus)
+    // projectionViewMatrix = glm::rotate(projectionViewMatrix, glm::radians(-timer*100), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate along the x axis
+    // projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 0.3f, 0.5f)); //scale to 0.5 the size
     
-    glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
-    glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+    // glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
+    // glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
 
     // ... draw our triangles
     glBindVertexArray(vao);    
