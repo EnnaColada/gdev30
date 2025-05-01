@@ -16,7 +16,7 @@
 // change this to your desired window attributes
 #define WINDOW_WIDTH  640
 #define WINDOW_HEIGHT 360
-#define WINDOW_TITLE  "That's Sus"
+#define WINDOW_TITLE  "That's Sus part 2"
 GLFWwindow *pWindow;
 
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
@@ -43,7 +43,7 @@ bool firstMouse = true;
 // define a vertex array to hold our vertices
 float vertices[] =
 {
-    // position (x, y, z)                   color (r, g, b)                     piece (s,t)
+    // position (x, y, z)                       color (r, g, b)                 piece (s)
     //base feet
 /*0*/   -0.125f-0.400f,-1.000f, 0.000f,         0.702f, 0.129f, 0.075f,         0.0f,
 /*1*/   -0.250f-0.400f,-1.000f, 0.217f,         0.702f, 0.129f, 0.075f,         0.0f,
@@ -163,6 +163,8 @@ float vertices[] =
 
 
 };
+
+
 
 GLuint indices[] = {
     //left foot base
@@ -369,6 +371,18 @@ GLuint indices[] = {
     93, 91, 92, 
 
 };
+
+// Aidx, Bidx, and Cidx are indices from the 'indices' array, representing one triangle.
+// A, B, and C are the positions of the vertices that form that triangle.
+glm::vec3 get_normal(int Aidx, int Bidx, int Cidx){
+    glm::vec3 A = glm::vec3(vertices[Aidx*7], vertices[Aidx*7+1], vertices[Aidx*7+2]);
+    glm::vec3 B = glm::vec3(vertices[Bidx*7], vertices[Bidx*7+1], vertices[Bidx*7+2]);
+    glm::vec3 C = glm::vec3(vertices[Cidx*7], vertices[Cidx*7+1], vertices[Cidx*7+2]);
+
+    // formula for the normal vector
+    return glm::normalize(glm::cross((B-A), (C-A)));
+};
+
 
 // define OpenGL object IDs to represent the vertex array and the shader program in the GPU
 GLuint vao;         // vertex array object (stores the render state for our vertex array)
@@ -578,6 +592,19 @@ int main(int argc, char** argv)
         }
     }
 
+    int idxCount = sizeof(indices)/4;
+    for(int i = 0; i < idxCount; i += 3) {
+        glm::vec3 normal = get_normal(indices[i], indices[i+1], indices[i+2]);
+        for (int j = 0; j < 3; j++){
+            glm::vec3 A(vertices[indices[i+j]*7], vertices[indices[i+j]*7+1], vertices[indices[i+j]*7+2]);
+            glm::vec4 B(vertices[indices[i+j]*7+3], vertices[indices[i+j]*7+4], vertices[indices[i+j]*7+5], vertices[indices[i+j]*7+5]);
+            printf("    % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,\n", 
+                    A.x, A.y, A.z, B.x, B.y, B.z, B.r, normal.x, normal.y, normal.z);
+            // std::cout << A.x << "f, " << A.y << "f, " << A.z << "f, " << B.x << "f, " << B.y << "f, " << B.z << "f, " << A.r << "f, "
+            //     << normal.x << "f, " << normal.y << "f, " << normal.z << "f\n";
+            
+        }
+    };
     // gracefully terminate the program
     glfwTerminate();
     return 0;
