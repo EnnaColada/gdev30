@@ -25,7 +25,6 @@ void main()
     objColor = vertexColor;
     
     gl_Position = projMatrix * vec4(worldSpacePos, 1.0f);
-    shaderColor = vertexColor;
 
     shaderTexCoord = vec2 ((vertexPosition.xy+1)/2);
     shaderPiece = vertexPiece;

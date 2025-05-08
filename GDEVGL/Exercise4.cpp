@@ -5,6 +5,12 @@
 *     S - down
 *     D - right
 *     mouse - look around
+*     [ - decrease light level
+*     ] - increase light level
+*     up - move light source up
+*     down - move light source down
+*     - - decrease specularity
+*     + - increase specularity
 ******************************************************************************/
 
 #include <iostream>
@@ -39,6 +45,14 @@ float lastX = 320, lastY = 180;
 float yaw = -90.0f, pitch = 0.0f;
 float fov = 45.0f;
 bool firstMouse = true;
+
+
+glm::vec3 lightPosition;
+glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+float specularity = 0.5f;
+float lightHeight = 0.0f;
+int pauseLight = 1;
+float pausedTime = 0.0f;
 
 // define a vertex array to hold our vertices
 float vertices[] =
@@ -659,13 +673,17 @@ bool setup()
 // called by the main function to do rendering per frame
 void render()
 {
-    float timer = glfwGetTime();
-
     // clear the whole frame
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     float time = glfwGetTime();
 
+    glm::mat2 lightRotate = glm::mat2(cos(time), sin(time), -sin(time), cos(time));
+
+    glm::vec2 start = glm::vec2(1.5f, 1.5f);
+    glm::vec2 temp = lightRotate*start;
+
+    lightPosition = glm::vec3(temp.x, lightHeight, temp.y);
 
     // using our shader program...
     glUseProgram(shader);
@@ -680,6 +698,9 @@ void render()
     glUniform1i(glGetUniformLocation(shader, "texture1"), 0);
     glUniform1i(glGetUniformLocation(shader, "texture2"), 1);
     glUniform1f(glGetUniformLocation(shader, "time"), time);
+    glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition.x, lightPosition.y,  lightPosition.z);
+    glUniform3f(glGetUniformLocation(shader, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
+    glUniform1f(glGetUniformLocation(shader, "specColor"), specularity);
 
 
     glm::mat4 projectionViewMatrix;
@@ -696,40 +717,37 @@ void render()
     //middle amogus
     glm::mat4 modelMatrix = glm::mat4(1.0f); // set to identity first!
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-    modelMatrix = glm::rotate(modelMatrix, 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(time*50), glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
     glm::mat4 normalMatrix;
     normalMatrix = glm::transpose(glm::inverse(modelMatrix));
-
-    // projectionViewMatrix *= modelMatrix;
-    //projectionViewMatrix = glm::rotate(projectionViewMatrix, glm::radians(timer*100), glm::vec3(0.0f, 1.0f, 0.0f)); //rotate along the y axis
 
     glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
     glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
     glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
     glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
-    // //right amogus
-    // projectionViewMatrix = glm::rotate(projectionViewMatrix, -glm::radians(timer*100), glm::vec3(0.0f, 1.0f, 0.0f)); //reset rotation
+    //right amogus
+    projectionViewMatrix = glm::rotate(projectionViewMatrix, -glm::radians(time*50), glm::vec3(0.0f, 1.0f, 0.0f)); //reset rotation
 
-    // projectionViewMatrix = glm::translate(projectionViewMatrix, glm::vec3(3.0f, 0.0f, 0.0f)); //move 3 units right
-    // projectionViewMatrix = glm::rotate(projectionViewMatrix, glm::radians(timer*100), glm::vec3(0.0f, 0.0f, 1.0f)); //rotate along the z axis
-    // projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 2.0f, 1.0f)); //scale to 1.5 times the size
+    projectionViewMatrix = glm::translate(projectionViewMatrix, glm::vec3(3.0f, 0.0f, 0.0f)); //move 3 units right
+    projectionViewMatrix = glm::rotate(projectionViewMatrix, glm::radians(time*50), glm::vec3(0.0f, 0.0f, 1.0f)); //rotate along the z axis
+    projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 2.0f, 1.0f)); //scale to 1.5 times the size
     
-    // glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
-    // glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
 
-    // //left amogus
-    // projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 0.5f, 1.0f)); //reset the scale
-    // projectionViewMatrix = glm::rotate(projectionViewMatrix, -glm::radians(timer*100), glm::vec3(0.0f, 0.0f, 1.0f)); //reset rotation
+    //left amogus
+    projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 0.5f, 1.0f)); //reset the scale
+    projectionViewMatrix = glm::rotate(projectionViewMatrix, -glm::radians(time*50), glm::vec3(0.0f, 0.0f, 1.0f)); //reset rotation
     
-    // projectionViewMatrix = glm::translate(projectionViewMatrix, glm::vec3(-6.0f, 0.0f, 0.0f)); //move 6 units left (3 units left of middle amogus)
-    // projectionViewMatrix = glm::rotate(projectionViewMatrix, glm::radians(-timer*100), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate along the x axis
-    // projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 0.3f, 0.5f)); //scale to 0.5 the size
+    projectionViewMatrix = glm::translate(projectionViewMatrix, glm::vec3(-6.0f, 0.0f, 0.0f)); //move 6 units left (3 units left of middle amogus)
+    projectionViewMatrix = glm::rotate(projectionViewMatrix, glm::radians(-time*50), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate along the x axis
+    projectionViewMatrix = glm::scale(projectionViewMatrix, glm::vec3(1.0f, 0.3f, 0.5f)); //scale to 0.5 the size
     
-    // glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
-    // glUniformMatrix4fv(glGetUniformLocation(shader, "matrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (3 * sizeof(float)));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
 
     // ... draw our triangles
     glBindVertexArray(vao);    
@@ -810,19 +828,7 @@ int main(int argc, char** argv)
         }
     }
 
-    // // int idxCount = sizeof(indices)/4;
-    // // for(int i = 0; i < idxCount; i += 3) {
-    //     glm::vec3 normal = get_normal(indices[i], indices[i+1], indices[i+2]);
-    //     for (int j = 0; j < 3; j++){
-    //         glm::vec3 A(vertices[indices[i+j]*7], vertices[indices[i+j]*7+1], vertices[indices[i+j]*7+2]);
-    //         glm::vec4 B(vertices[indices[i+j]*7+3], vertices[indices[i+j]*7+4], vertices[indices[i+j]*7+5], vertices[indices[i+j]*7+6]);
-    //         printf("    % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,\n", 
-    //                 A.x, A.y, A.z, B.x, B.y, B.z, B.w, normal.x, normal.y, normal.z);
-    //         // std::cout << A.x << "f, " << A.y << "f, " << A.z << "f, " << B.x << "f, " << B.y << "f, " << B.z << "f, " << A.r << "f, "
-    //         //     << normal.x << "f, " << normal.y << "f, " << normal.z << "f\n";
-            
-    //     }
-    // };
+    
     // gracefully terminate the program
     glfwTerminate();
     return 0;
@@ -843,6 +849,18 @@ void processInput(GLFWwindow *window)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        lightHeight += 0.1f;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        lightHeight -= 0.1f;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS)
+        lightColor -= 0.1f;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS)
+        lightColor += 0.1f;
+    if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
+        specularity -= 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+        specularity += 0.05f;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
