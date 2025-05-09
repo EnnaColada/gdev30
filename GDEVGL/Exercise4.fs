@@ -38,5 +38,6 @@ void main()
         fragmentColor = vec4(objColor * finalColor, 1.0f)
                             + texture(texture2, 
                             shaderTexCoord + vec2(0.2f*time, 0.2f*time))
-                            * vec4(finalColor, 1.0f);
+                            * vec4(finalColor, 1.0f);  
+
 }

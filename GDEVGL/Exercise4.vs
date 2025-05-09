@@ -2,8 +2,7 @@
 
 layout (location = 0) in vec3 vertexPosition;
 layout (location = 1) in vec3 vertexColor;
-layout (location = 2) in float vertexPiece;
-layout (location = 3) in vec3 vertexNormal;
+layout (location = 2) in vec3 vertexNormal;
 
 uniform mat4 projMatrix;
 uniform mat4 modMatrix;
@@ -27,7 +26,7 @@ void main()
     gl_Position = projMatrix * vec4(worldSpacePos, 1.0f);
 
     shaderTexCoord = vec2 ((vertexPosition.xy+1)/2);
-    shaderPiece = vertexPiece;
+    shaderPiece = (objColor == vec3(0.000f,  1.000f,  1.000f)) ? 1.0f : 0.0f;
 
     
 }
