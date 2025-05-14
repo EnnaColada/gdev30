@@ -20,24 +20,28 @@ float ambColor = 0.3;
 
 void main()
 {
-    vec3 lightVec = normalize(lightPosition - worldSpacePos);
-    vec3 norm = normalize(worldSpaceNorm);
-    vec3 reflectVec = reflect(-lightVec, norm);
-    float spec = pow(max(dot(lightVec, reflectVec), 0.0), 32);
-    vec3 specular = specColor * spec * lightColor; 
+    // vec3 lightVec = normalize(lightPosition - worldSpacePos);
+    // vec3 norm = normalize(worldSpaceNorm);
+    // vec3 reflectVec = reflect(-lightVec, norm);
+    // float spec = pow(max(dot(lightVec, reflectVec), 0.0), 32);
+    // vec3 specular = specColor * spec * lightColor; 
 
-    float diffColor = max(dot(lightVec, norm), 0);
-    vec3 finalColor = lightColor * (diffColor + ambColor + specular);
+    // float diffColor = max(dot(lightVec, norm), 0);
+    // vec3 finalColor = lightColor * (diffColor + ambColor + specular);
 
+
+    // if (shaderPiece == 0.0f)
+    //     fragmentColor = vec4(objColor, 1.0f)
+    //                         * texture(texture1, shaderTexCoord)
+    //                         * vec4(finalColor, 1.0f);
+    // else
+    //     fragmentColor = vec4(objColor * finalColor, 1.0f)
+    //                         + texture(texture2, 
+    //                         shaderTexCoord + vec2(0.2f*time, 0.2f*time))
+    //                         * vec4(finalColor, 1.0f);  
 
     if (shaderPiece == 0.0f)
-        fragmentColor = vec4(objColor, 1.0f)
-                            * texture(texture1, shaderTexCoord)
-                            * vec4(finalColor, 1.0f);
+        fragmentColor = vec4(objColor, 1.0f);//*texture(texture1, shaderTexCoord);
     else
-        fragmentColor = vec4(objColor * finalColor, 1.0f)
-                            + texture(texture2, 
-                            shaderTexCoord + vec2(0.2f*time, 0.2f*time))
-                            * vec4(finalColor, 1.0f);  
-
+        fragmentColor = vec4(objColor, 1.0f)+texture(texture2, shaderTexCoord+ vec2(0.2f*time, 0.2f*time));
 }
