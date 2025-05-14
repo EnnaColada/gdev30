@@ -1,0 +1,743 @@
+/******************************************************************************
+*   Controls: 
+*     W - up
+*     A - left
+*     S - down
+*     D - right
+*     mouse - look around
+*     [ - decrease light level
+*     ] - increase light level
+*     up - move light source up
+*     down - move light source down
+*     - - decrease specularity
+*     + - increase specularity
+******************************************************************************/
+
+#include <iostream>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <gdev.h>
+
+// change this to your desired window attributes
+#define WINDOW_WIDTH  1280
+#define WINDOW_HEIGHT 720
+#define WINDOW_TITLE  "That's Sus part 2"
+GLFWwindow *pWindow;
+
+glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+
+glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+
+glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); 
+glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
+void processInput(GLFWwindow *window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+
+float lastX = 320, lastY = 180;
+float yaw = -90.0f, pitch = 0.0f;
+float fov = 45.0f;
+bool firstMouse = true;
+
+
+glm::vec3 lightPosition;
+glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+float specularity = 0.5f;
+float lightHeight = 2.0f;
+int pauseLight = 1;
+float pausedTime = 0.0f;
+
+float vertices[] = { 
+ 
+         // position (x, y, z)            color (r, g, b)                normals(x, y, z)
+         //base feet
+/*0*/     -0.525f, -1.000f,  0.000f,      0.702f,  0.129f,  0.075f,     -0.664f, -0.596f, -0.452f,
+/*1*/     -0.650f, -1.000f,  0.217f,      0.702f,  0.129f,  0.075f,     -0.785f, -0.620f,  0.007f,
+/*2*/     -0.525f, -1.000f,  0.424f,      0.702f,  0.129f,  0.075f,     -0.609f, -0.694f,  0.384f,
+/*3*/     -0.275f, -1.000f,  0.000f,      0.702f,  0.129f,  0.075f,     -0.491f, -0.695f, -0.525f,
+/*4*/     -0.150f, -1.000f,  0.217f,      0.702f,  0.129f,  0.075f,     -0.543f, -0.840f,  0.018f,
+/*5*/     -0.275f, -1.000f,  0.424f,      0.702f,  0.129f,  0.075f,     -0.314f, -0.641f,  0.700f,
+
+/*6*/      0.275f, -1.000f,  0.000f,      0.702f,  0.129f,  0.075f,      0.470f, -0.598f, -0.649f,
+/*7*/      0.150f, -1.000f,  0.217f,      0.702f,  0.129f,  0.075f,      0.523f, -0.813f, -0.256f,
+/*8*/      0.275f, -1.000f,  0.424f,      0.702f,  0.129f,  0.075f,      0.473f, -0.663f,  0.580f,
+/*9*/      0.525f, -1.000f,  0.000f,      0.702f,  0.129f,  0.075f,      0.582f, -0.743f, -0.331f,
+/*10*/     0.650f, -1.000f,  0.217f,      0.702f,  0.129f,  0.075f,      0.855f, -0.518f,  0.009f,
+/*11*/     0.525f, -1.000f,  0.424f,      0.702f,  0.129f,  0.075f,      0.419f, -0.763f,  0.492f,
+
+        //base torso
+/*12*/    -0.625f, -0.600f, -0.030f,      0.702f,  0.129f,  0.075f,     -0.547f, -0.185f, -0.816f,
+/*13*/    -0.750f, -0.600f,  0.217f,      0.702f,  0.129f,  0.075f,     -0.945f, -0.321f, -0.067f,
+/*14*/    -0.625f, -0.600f,  0.454f,      0.702f,  0.129f,  0.075f,     -0.399f, -0.211f,  0.892f,
+/*15*/     0.625f, -0.600f, -0.030f,      0.702f,  0.129f,  0.075f,      0.626f, -0.196f, -0.754f,
+/*16*/     0.750f, -0.600f,  0.217f,      0.702f,  0.129f,  0.075f,      0.954f, -0.278f,  0.111f,
+/*17*/     0.625f, -0.600f,  0.454f,      0.702f,  0.129f,  0.075f,      0.434f, -0.217f,  0.874f,
+
+/*18*/    -0.225f, -0.600f, -0.030f,      0.561f,  0.086f,  0.000f,     -0.254f, -0.466f, -0.848f,
+/*19*/    -0.100f, -0.600f,  0.217f,      0.561f,  0.086f,  0.000f,     -0.047f, -0.999f,  0.005f,
+/*20*/    -0.225f, -0.600f,  0.454f,      0.561f,  0.086f,  0.000f,     -0.231f, -0.572f,  0.787f,
+/*21*/     0.225f, -0.600f, -0.030f,      0.561f,  0.086f,  0.000f,      0.265f, -0.584f, -0.767f,
+/*22*/     0.100f, -0.600f,  0.217f,      0.561f,  0.086f,  0.000f,      0.195f, -0.969f,  0.152f,
+/*23*/     0.225f, -0.600f,  0.454f,      0.561f,  0.086f,  0.000f,      0.184f, -0.495f,  0.849f,
+
+        //torso 2nd layer
+/*24*/    -0.675f, -0.300f, -0.100f,      0.702f,  0.129f,  0.075f,     -0.681f, -0.287f, -0.674f,
+/*25*/    -0.800f, -0.300f,  0.217f,      0.702f,  0.129f,  0.075f,     -0.991f, -0.130f,  0.026f,
+/*26*/    -0.675f, -0.300f,  0.524f,      0.702f,  0.129f,  0.075f,     -0.590f, -0.189f,  0.785f,
+/*27*/     0.675f, -0.300f, -0.100f,      0.702f,  0.129f,  0.075f,      0.456f, -0.537f, -0.710f,
+/*28*/     0.800f, -0.300f,  0.217f,      0.702f,  0.129f,  0.075f,      0.992f, -0.126f, -0.010f,
+/*29*/     0.675f, -0.300f,  0.524f,      0.702f,  0.129f,  0.075f,      0.607f, -0.213f,  0.766f,
+/*30*/    -0.225f, -0.300f, -0.200f,      0.702f,  0.129f,  0.075f,     -0.219f, -0.199f, -0.955f,
+/*31*/    -0.225f, -0.300f,  0.624f,      0.702f,  0.129f,  0.075f,     -0.248f, -0.212f,  0.945f,
+/*32*/     0.225f, -0.300f, -0.200f,      0.702f,  0.129f,  0.075f,      0.229f, -0.249f, -0.941f,
+/*33*/     0.225f, -0.300f,  0.624f,      0.702f,  0.129f,  0.075f,      0.158f, -0.227f,  0.961f,
+
+        //torso 3rd layer
+/*34*/    -0.675f,  0.100f, -0.100f,      0.702f,  0.129f,  0.075f,     -0.813f,  0.016f, -0.582f,
+/*35*/    -0.800f,  0.100f,  0.217f,      0.702f,  0.129f,  0.075f,     -0.998f,  0.056f,  0.008f,
+/*36*/    -0.675f,  0.100f,  0.524f,      0.702f,  0.129f,  0.075f,     -0.601f,  0.021f,  0.799f,
+/*37*/     0.675f,  0.100f, -0.100f,      0.702f,  0.129f,  0.075f,      0.740f,  0.056f, -0.670f,
+/*38*/     0.800f,  0.100f,  0.217f,      0.702f,  0.129f,  0.075f,      0.999f,  0.054f,  0.007f,
+/*39*/     0.675f,  0.100f,  0.524f,      0.702f,  0.129f,  0.075f,      0.614f,  0.007f,  0.789f,
+/*40*/    -0.225f,  0.100f, -0.200f,      0.702f,  0.129f,  0.075f,      0.000f, -0.012f, -1.000f,
+/*41*/    -0.325f,  0.100f,  0.624f,      0.561f,  0.086f,  0.000f,     -0.132f, -0.163f,  0.978f,
+/*42*/     0.225f,  0.100f, -0.200f,      0.702f,  0.129f,  0.075f,      0.163f, -0.013f, -0.987f,
+/*43*/     0.325f,  0.100f,  0.624f,      0.561f,  0.086f,  0.000f,      0.299f, -0.314f,  0.901f,
+
+        //torso 4th layer
+/*44*/    -0.650f,  0.400f, -0.100f,      0.702f,  0.129f,  0.075f,     -0.865f,  0.116f, -0.489f,
+/*45*/    -0.775f,  0.400f,  0.217f,      0.702f,  0.129f,  0.075f,     -0.970f,  0.129f,  0.204f,
+/*46*/    -0.650f,  0.400f,  0.524f,      0.702f,  0.129f,  0.075f,     -0.625f,  0.097f,  0.775f,
+/*47*/     0.650f,  0.400f, -0.100f,      0.702f,  0.129f,  0.075f,      0.660f,  0.126f, -0.740f,
+/*48*/     0.775f,  0.400f,  0.217f,      0.702f,  0.129f,  0.075f,      0.975f,  0.123f, -0.185f,
+/*49*/     0.650f,  0.400f,  0.524f,      0.702f,  0.129f,  0.075f,      0.753f,  0.118f,  0.647f,
+/*50*/    -0.325f,  0.400f, -0.200f,      0.702f,  0.129f,  0.075f,     -0.202f,  0.089f, -0.975f,
+/*51*/    -0.525f,  0.400f,  0.564f,      0.702f,  0.129f,  0.075f,     -0.490f,  0.012f,  0.872f,
+/*52*/     0.325f,  0.400f, -0.200f,      0.702f,  0.129f,  0.075f,     -0.021f,  0.082f, -0.996f,
+/*53*/     0.525f,  0.400f,  0.564f,      0.702f,  0.129f,  0.075f,      0.506f,  0.017f,  0.862f,
+
+        //head 5th layer
+/*54*/    -0.625f,  0.750f, -0.040f,      0.702f,  0.129f,  0.075f,     -0.499f,  0.516f, -0.696f,
+/*55*/    -0.750f,  0.700f,  0.217f,      0.702f,  0.129f,  0.075f,     -0.807f,  0.577f, -0.126f,
+/*56*/    -0.625f,  0.700f,  0.464f,      0.702f,  0.129f,  0.075f,     -0.576f,  0.351f,  0.738f,
+/*57*/     0.625f,  0.750f, -0.040f,      0.702f,  0.129f,  0.075f,      0.580f,  0.656f, -0.483f,
+/*58*/     0.750f,  0.700f,  0.217f,      0.702f,  0.129f,  0.075f,      0.806f,  0.552f,  0.215f,
+/*59*/     0.625f,  0.700f,  0.464f,      0.702f,  0.129f,  0.075f,      0.496f,  0.321f,  0.807f,
+/*60*/    -0.225f,  0.750f, -0.140f,      0.702f,  0.129f,  0.075f,     -0.051f,  0.355f, -0.933f,
+/*61*/    -0.325f,  0.700f,  0.524f,      0.702f,  0.129f,  0.075f,     -0.314f,  0.561f,  0.766f,
+/*62*/     0.225f,  0.750f, -0.140f,      0.702f,  0.129f,  0.075f,      0.294f,  0.323f, -0.899f,
+/*63*/     0.325f,  0.700f,  0.524f,      0.702f,  0.129f,  0.075f,      0.007f,  0.630f,  0.777f,
+
+        //head 6th layer
+/*64*/    -0.325f,  1.000f,  0.000f,      0.702f,  0.129f,  0.075f,     -0.478f,  0.834f, -0.276f,
+/*65*/    -0.450f,  1.000f,  0.217f,      0.702f,  0.129f,  0.075f,     -0.468f,  0.878f,  0.099f,
+/*66*/    -0.325f,  1.000f,  0.424f,      0.702f,  0.129f,  0.075f,     -0.461f,  0.798f,  0.389f,
+/*67*/     0.325f,  1.000f,  0.000f,      0.702f,  0.129f,  0.075f,      0.141f,  0.859f, -0.493f,
+/*68*/     0.450f,  1.000f,  0.217f,      0.702f,  0.129f,  0.075f,      0.548f,  0.836f, -0.038f,
+/*69*/     0.325f,  1.000f,  0.424f,      0.702f,  0.129f,  0.075f,      0.444f,  0.837f,  0.320f,
+/*70*/    -0.125f,  1.000f,  0.000f,      0.702f,  0.129f,  0.075f,     -0.250f,  0.741f, -0.623f,
+/*71*/    -0.225f,  1.000f,  0.424f,      0.702f,  0.129f,  0.075f,      0.047f,  0.802f,  0.595f,
+/*72*/     0.125f,  1.000f,  0.000f,      0.702f,  0.129f,  0.075f,      0.078f,  0.899f, -0.431f,
+/*73*/     0.225f,  1.000f,  0.424f,      0.702f,  0.129f,  0.075f,      0.309f,  0.668f,  0.677f,
+
+        //glass
+/*74*/    -0.325f,  0.100f,  0.624f,      0.000f,  1.000f,  1.000f,     -0.132f, -0.163f,  0.978f,
+/*75*/     0.325f,  0.100f,  0.624f,      0.000f,  1.000f,  1.000f,      0.299f, -0.314f,  0.901f,
+/*76*/    -0.525f,  0.400f,  0.564f,      0.000f,  1.000f,  1.000f,     -0.490f,  0.012f,  0.872f,
+/*77*/     0.525f,  0.400f,  0.564f,      0.000f,  1.000f,  1.000f,      0.506f,  0.017f,  0.862f,
+/*78*/    -0.325f,  0.700f,  0.524f,      0.000f,  1.000f,  1.000f,     -0.314f,  0.561f,  0.766f,
+/*79*/     0.325f,  0.700f,  0.524f,      0.000f,  1.000f,  1.000f,      0.007f,  0.630f,  0.777f,
+
+/*80*/    -0.225f,  0.250f,  0.774f,      0.000f,  1.000f,  1.000f,     -0.201f, -0.535f,  0.821f,
+/*81*/     0.225f,  0.250f,  0.774f,      0.000f,  1.000f,  1.000f,     -0.182f, -0.380f,  0.907f,
+/*82*/    -0.375f,  0.400f,  0.774f,      0.000f,  1.000f,  1.000f,      0.166f,  0.136f,  0.977f,
+
+/*83*/     0.375f,  0.400f,  0.774f,      0.000f,  1.000f,  1.000f,     -0.089f,  0.180f,  0.980f,
+/*84*/    -0.225f,  0.650f,  0.724f,      0.000f,  1.000f,  1.000f,      0.379f,  0.645f,  0.663f,
+/*85*/     0.225f,  0.650f,  0.724f,      0.000f,  1.000f,  1.000f,     -0.031f,  0.703f,  0.711f,
+
+        //backpack
+/*86*/    -0.675f, -0.300f, -0.500f,      0.561f,  0.086f,  0.000f,      0.289f, -0.856f, -0.428f,
+/*87*/     0.675f, -0.300f, -0.500f,      0.702f,  0.129f,  0.075f,     -0.517f, -0.383f, -0.766f,
+/*88*/    -0.675f,  0.100f, -0.500f,      0.702f,  0.129f,  0.075f,     -0.391f,  0.051f, -0.919f,
+/*89*/     0.675f,  0.100f, -0.500f,      0.702f,  0.129f,  0.075f,      0.410f,  0.025f, -0.912f,
+/*90*/    -0.650f,  0.400f, -0.500f,      0.702f,  0.129f,  0.075f,      0.008f,  0.121f, -0.993f,
+/*91*/     0.650f,  0.400f, -0.500f,      0.702f,  0.129f,  0.075f,      0.025f,  0.172f, -0.985f,
+/*92*/    -0.625f,  0.750f, -0.450f,      0.561f,  0.086f,  0.000f,      0.383f,  0.707f, -0.595f,
+/*93*/     0.625f,  0.750f, -0.450f,      0.561f,  0.086f,  0.000f,      0.626f,  0.618f, -0.477f
+    
+};
+    
+
+GLuint indices[] = {
+    //left foot base
+     0,  2,  1,
+     0,  3,  2,
+     2,  3,  5,
+     3,  4,  5,
+    
+    //right foot base
+     6,  8,  7,
+     6,  9,  8,
+     8,  9, 11,
+     9, 10, 11,
+
+    //connecting feet to torso
+     0,  1, 13,
+     0, 12,  3,
+     0, 13, 12,
+     1,  2, 13,
+     2, 14, 13,
+     2,  5, 14,
+
+     8, 11, 17,
+     6, 15,  9,
+     9, 15, 10,
+    10, 15, 16,
+    10, 17, 11,
+    10, 16, 17,
+
+     3, 12, 18,
+     3, 18,  4,
+     4, 18, 19,
+     4, 19, 20,
+     4, 20,  5,
+     5, 20, 14,
+     6, 21, 15,
+     6,  7, 21, 
+     7, 22, 21,
+     7,  8, 22,
+     8, 23, 22,
+     8, 17, 23,
+
+    18, 21, 19,
+    19, 21, 22,
+    19, 22, 20,
+    20, 22, 23,
+
+    //2nd layer
+    12, 13, 24,
+    13, 25, 24,
+    13, 14, 25,
+    14, 26, 25,
+    14, 20, 26,
+    20, 31, 26,
+    20, 23, 33,
+    20, 33, 31,
+    23, 29, 33, 
+    17, 29, 23,
+    16, 29, 17,
+    16, 28, 29,
+    15, 28, 16,
+    15, 27, 28,
+    15, 21, 27,
+    21, 32, 27,
+    18, 32, 21,
+    18, 30, 32,
+    18, 24, 30,
+    12, 24, 18,
+
+    //3rd layer
+    24, 25, 34,
+    25, 35, 34,
+    25, 26, 35,
+    26, 36, 35,
+    26, 31, 36,
+    31, 41, 36,
+    31, 33, 41,
+    33, 43, 41,
+    29, 39, 33,
+    33, 39, 43,
+    28, 39, 29,
+    28, 38, 39, 
+    27, 38, 28,
+    27, 37, 38,
+    27, 32, 37,
+    32, 42, 37,
+    30, 42, 32,
+    30, 40, 42,
+    24, 40, 30,
+    24, 34, 40,
+
+    //4th layer
+    39, 53, 43,
+    39, 49, 53,
+    38, 49, 39,
+    38, 48, 49,
+    37, 48, 38,
+    37, 47, 48,
+    37, 42, 47,
+    42, 52, 47, 
+    40, 52, 42,
+    40, 50, 52,
+    34, 50, 40,
+    34, 44, 50, 
+    34, 35, 44,
+    35, 45, 44,
+    35, 36, 45,
+    46, 45, 36,
+    36, 41, 46,
+    46, 41, 51,
+
+    // //5th layer
+    61, 56, 51,
+    46, 51, 56,
+    45, 46, 56,
+    45, 56, 55,
+    44, 45, 55,
+    44, 55, 54,
+    44, 54, 50,
+    50, 54, 60,
+    60, 52, 50,
+    52, 60, 62,
+    47, 52, 62,
+    47, 62, 57,
+    57, 48, 47,
+    48, 57, 58,
+    58, 49, 48,
+    49, 58, 59,
+    49, 59, 53,
+    53, 59, 63,
+
+    //6th layer
+    56, 61, 71,
+    61, 63, 71,
+    63, 73, 71,
+    59, 73, 63,
+    59, 69, 73,
+    58, 69, 59,
+    58, 68, 69,
+    57, 68, 58,
+    57, 67, 68,
+    57, 62, 67,
+    72, 67, 62,
+    60, 72, 62,
+    60, 70, 72,
+    54, 70, 60,
+    54, 64, 70,
+    54, 55, 64,
+    55, 65, 64,
+    55, 56, 65,
+    56, 66, 65,
+    66, 56, 71,
+
+    //top
+    64, 65, 66,
+    64, 66, 71,
+    64, 71, 70,
+    70, 71, 72,
+    73, 72, 71,
+    69, 72, 73,
+    69, 67, 72, 
+    69, 68, 67,
+
+    //glass
+    74, 75, 80,
+    75, 81, 80,
+    76, 74, 80,
+    76, 80, 82,
+    75, 77, 81,
+    77, 83, 81,
+    78, 76, 82,
+    78, 82, 84,
+    77, 79, 83,
+    79, 85, 83,
+    79, 78, 84,
+    79, 84, 85,
+    80, 81, 82,
+    83, 82, 81,
+    82, 83, 84,
+    85, 84, 83,
+
+    //backpack
+    24, 34, 86,
+    34, 88, 86,
+    34, 44, 88,
+    44, 90, 88,
+    44, 54, 90, 
+    54, 92, 90,
+    54, 57, 92,
+    57, 93, 92,
+    47, 93, 57,
+    47, 91, 93,
+    47, 37, 91,
+    37, 89, 91,
+    37, 27, 89,
+    87, 89, 27,
+    27, 24, 86,
+    27, 86, 87,
+    88, 87, 86,
+    87, 88, 89,
+    89, 88, 90,
+    89, 90, 91,
+    92, 91, 90,
+    93, 91, 92, 
+};
+
+// // Aidx, Bidx, and Cidx are indices from the 'indices' array, representing one triangle.
+// // A, B, and C are the positions of the vertices that form that triangle.
+// glm::vec3 get_normal(int Aidx, int Bidx, int Cidx){
+//     glm::vec3 A = glm::vec3(vertices[Aidx*7], vertices[Aidx*7+1], vertices[Aidx*7+2]);
+//     glm::vec3 B = glm::vec3(vertices[Bidx*7], vertices[Bidx*7+1], vertices[Bidx*7+2]);
+//     glm::vec3 C = glm::vec3(vertices[Cidx*7], vertices[Cidx*7+1], vertices[Cidx*7+2]);
+
+//     // formula for the normal vector | normalize((B-A) x (C-A))
+//     return glm::normalize(glm::cross((B-A), (C-A)));
+// };
+
+
+// define OpenGL object IDs to represent the vertex array and the shader program in the GPU
+GLuint vao;         // vertex array object (stores the render state for our vertex array)
+GLuint vbo;         // vertex buffer object (reserves GPU memory for our vertex array)
+GLuint ebo;        // vertex buffer object (reserves GPU memory for our vertex array)
+GLuint shader;      // combined vertex and fragment shader
+GLuint texture1;
+GLuint texture2;
+
+// called by the main function to do initial setup, such as uploading vertex
+// arrays, shader programs, etc.; returns true if successful, false otherwise
+bool setup()
+{
+    // // Used print out the normals of each triangle, along with its corresponding position, color and piece
+    //
+    // int step = 7;
+    // int idxCount = sizeof(indices)/4;
+    // for(int i = 0; i < idxCount; i += 3) {
+    //     glm::vec3 normal = get_normal(indices[i], indices[i+1], indices[i+2]);
+    //     for (int j = 0; j < 3; j++){
+    //         glm::vec3 A(vertices[indices[i+j]*step], vertices[indices[i+j]*step+1], vertices[indices[i+j]*step+2]);
+    //         glm::vec4 B(vertices[indices[i+j]*step+3], vertices[indices[i+j]*step+4], vertices[indices[i+j]*step+5], vertices[indices[i+j]*step+6]);
+    //         printf("    % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,\n", 
+    //                 A.x, A.y, A.z, B.x, B.y, B.z, B.r, normal.x, normal.y, normal.z);
+    //     }
+    // };
+    
+    // For smoothing; This gets the average of the normals 
+    // int step = 10;
+    // for (int i = 0; i < sizeof(vertices)/(step*4); i++){
+    //     glm::vec3 currVerts(vertices[i*step], vertices[i*step+1], vertices[i*step+2]);
+    //     glm::vec3 totalNormal(0,0,0);
+    //     glm::vec3 finalNormal(0,0,0);
+
+    //     float totalVerts = 0;
+
+    //     for (int j = 0; j < sizeof(vertices)/(10*4); j++){
+    //         glm:: vec3 compVerts(vertices[j*step], vertices[j*step+1], vertices[j*step+2]);
+    //         if (glm::distance(currVerts, compVerts) <= 0.001f){
+    //             totalNormal += glm::vec3(vertices[j*step+8], vertices[j*step+9], vertices[j*step+10]);
+    //             totalVerts++;
+    //         }
+    //     }
+
+    //     if (totalVerts > 0){
+    //         finalNormal = glm::normalize(totalNormal / totalVerts);
+    //         printf("    % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,\n", 
+    //                 currVerts.x, currVerts.y, currVerts.z,
+    //                 vertices[i*step+3], vertices[i*step+4], vertices[i*step+5], 
+    //                 vertices[i*step+6],
+    //                 finalNormal.x, finalNormal.y, finalNormal.z);
+    //     }
+    // }
+
+    // generate the VAO and VBO objects and store their IDs in vao and vbo, respectively
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
+    // bind the newly-created VAO to make it the current one that OpenGL will apply state changes to
+    glBindVertexArray(vao);
+
+    // upload our vertex array data to the newly-created VBO
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+     //added ebo for uploading index array data to the newly create EBO
+     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+ 
+    // on the VAO, register the current VBO with the following vertex attribute layout:
+    // - layout location 0...
+    // - ... shall consist of 3 GL_FLOATs (corresponding to x, y, and z coordinates)
+    // - ... its values will NOT be normalized (GL_FALSE)
+    // - ... the stride length is the number of bytes of all 3 floats of each vertex (hence, 3 * sizeof(float))
+    // - ... and we start at the beginning of the array (hence, (void*) 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*) (3 * sizeof(float)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*) (6 * sizeof(float)));
+
+
+    // enable the newly-created layout location 0;
+    // this shall be used by our vertex shader to read the vertex's x, y, and z
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+
+    glEnable(GL_CULL_FACE); 
+
+    // important: if you have more vertex arrays to draw, make sure you separately define them
+    // with unique VAO and VBO IDs, and follow the same process above to upload them to the GPU
+
+
+    // load our shader program
+    shader = gdevLoadShader("FinalProject.vs", "FinalProject.fs");
+    if (! shader)
+        return false;
+    texture1 = gdevLoadTexture("cloth.jpg", GL_REPEAT, true, true);
+    if (! texture1) return false;
+    texture2 = gdevLoadTexture("glass.png", GL_REPEAT, true, true);
+    if (! texture2) return false;
+
+    return true;
+}
+
+// called by the main function to do rendering per frame
+void render()
+{
+    // clear the whole frame
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    float time = glfwGetTime();
+
+    glm::mat2 lightRotate = glm::mat2(cos(time), sin(time), -sin(time), cos(time));
+
+    glm::vec2 start = glm::vec2(1.5f, 1.5f);
+    glm::vec2 temp = lightRotate*start;
+
+    lightPosition = glm::vec3(temp.x, lightHeight, temp.y);
+
+    // using our shader program...
+    glUseProgram(shader);
+    glEnable(GL_DEPTH_TEST); // enable OpenGL's hidden surface removal
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 2);
+    
+
+    glUniform1i(glGetUniformLocation(shader, "texture1"), 0);
+    glUniform1i(glGetUniformLocation(shader, "texture2"), 1);
+    glUniform1f(glGetUniformLocation(shader, "time"), time);
+    glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition.x, lightPosition.y,  lightPosition.z);
+    glUniform3f(glGetUniformLocation(shader, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
+    glUniform1f(glGetUniformLocation(shader, "specColor"), specularity);
+
+
+    glm::mat4 projectionViewMatrix;
+    projectionViewMatrix = glm::perspective(glm::radians(60.0f),
+                             (float) WINDOW_WIDTH / WINDOW_HEIGHT,
+                              0.1f, 100.0f);
+    //camera
+    glm::mat4 view;
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+    //set the default view of the camera
+    projectionViewMatrix *= view;
+    
+    //middle amogus
+    glm::mat4 modelMatrix = glm::mat4(1.0f); // set to identity first!
+
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(time*50), glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+
+    glm::mat4 normalMatrix;
+    normalMatrix = glm::transpose(glm::inverse(modelMatrix));
+
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+
+    //right amogus
+    modelMatrix = glm::rotate(modelMatrix, -glm::radians(time*50), glm::vec3(0.0f, 1.0f, 0.0f)); //reset rotation
+
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(3.0f, 0.0f, 0.0f)); //move 3 units right
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(time*50), glm::vec3(0.0f, 0.0f, 1.0f)); //rotate along the z axis
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 2.0f, 1.0f)); //scale to 1.5 times the size
+
+    normalMatrix = glm::transpose(glm::inverse(modelMatrix));
+    
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+    normalMatrix = glm::transpose(glm::inverse(modelMatrix));
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+
+    // Reset Model Matrix
+
+    //left amogus
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 0.5f, 1.0f)); //reset the scale
+    modelMatrix = glm::rotate(modelMatrix, -glm::radians(time*50), glm::vec3(0.0f, 0.0f, 1.0f)); //reset rotation
+    
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(-6.0f, 0.0f, 0.0f)); //move 6 units left (3 units left of middle amogus)
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(-time*50), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate along the x axis
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 0.3f, 0.5f)); //scale to 0.5 the size
+
+    normalMatrix = glm::transpose(glm::inverse(modelMatrix));
+    
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+    
+    normalMatrix = glm::transpose(glm::inverse(modelMatrix));
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+
+    // ... draw our triangles
+    glBindVertexArray(vao);    
+    processInput(pWindow);
+}
+
+/*****************************************************************************/
+
+// handler called by GLFW when there is a keyboard event
+void handleKeys(GLFWwindow* pWindow, int key, int scancode, int action, int mode)
+{
+    // pressing Esc closes the window
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(pWindow, GL_TRUE);
+}
+
+// handler called by GLFW when the window is resized
+void handleResize(GLFWwindow* pWindow, int width, int height)
+{
+    // tell OpenGL to do its drawing within the entire "client area" (area within the borders) of the window
+    glViewport(0, 0, width, height);
+}
+
+// main function
+int main(int argc, char** argv)
+{
+    // initialize GLFW and ask for OpenGL 3.3 core
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    // create a GLFW window with the specified width, height, and title
+    pWindow = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, NULL, NULL);
+    if (! pWindow)
+    {
+        // gracefully terminate if we cannot create the window
+        std::cout << "Cannot create the GLFW window.\n";
+        glfwTerminate();
+        return -1;
+    }
+
+    // make the window the current context of subsequent OpenGL commands,
+    // and enable vertical sync and aspect-ratio correction on the GLFW window
+    glfwMakeContextCurrent(pWindow);
+    glfwSwapInterval(1);
+    glfwSetWindowAspectRatio(pWindow, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    // set up callback functions to handle window system events
+    glfwSetKeyCallback(pWindow, handleKeys);
+    glfwSetFramebufferSizeCallback(pWindow, handleResize);
+    glfwSetCursorPosCallback(pWindow, mouse_callback); 
+
+    // don't miss any momentary keypresses
+    glfwSetInputMode(pWindow, GLFW_STICKY_KEYS, GLFW_TRUE);
+    glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
+
+    // initialize GLAD, which acts as a library loader for the current OS's native OpenGL library
+    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+
+    // if our initial setup is successful...
+    if (setup())
+    {
+        // do rendering in a loop until the user closes the window
+        while (! glfwWindowShouldClose(pWindow))
+        {
+            // render our next frame
+            // (by default, GLFW uses double-buffering with a front and back buffer;
+            // all drawing goes to the back buffer, so the frame does not get shown yet)
+            render();
+
+            // swap the GLFW front and back buffers to show the next frame
+            glfwSwapBuffers(pWindow);
+
+            // process any window events (such as moving, resizing, keyboard presses, etc.)
+            glfwPollEvents();
+        }
+    }
+
+    
+    // gracefully terminate the program
+    glfwTerminate();
+    return 0;
+}
+
+// moving camera
+void processInput(GLFWwindow *window)
+{
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;  
+    const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        lightHeight += 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        lightHeight -= 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS)
+        lightColor -= 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS)
+        lightColor += 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
+        specularity -= 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+        specularity += 0.05f;
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+    
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+    lastX = xpos;
+    lastY = ypos;
+
+    const float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw   += xoffset;
+    pitch += yoffset;
+
+    if(pitch > 89.0f)
+        pitch = 89.0f;
+    if(pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(direction);
+};
