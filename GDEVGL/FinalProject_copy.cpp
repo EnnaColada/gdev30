@@ -339,24 +339,11 @@ float vertices[] = {
     /*207*/   -0.775f,  0.010f,  0.800f,      0.145f,  0.145f,  0.145f,     -0.807f,  0.428f, -0.407f,
     /*208*/   -0.775f, -0.125f,  0.800f,      0.145f,  0.145f,  0.145f,     -0.866f, -0.384f, -0.320f,
 
-            //background
-    /*209*/   -3.000f,  3.000f, -3.000f,      1.000f,  1.000f,  1.000f,      0.000f,  0.000f,  0.000f,
-    /*210*/   -3.000f, -3.000f, -3.000f,      1.000f,  1.000f,  1.000f,      0.000f,  0.000f,  0.000f,
-    /*211*/    3.000f,  3.000f, -3.000f,      1.000f,  1.000f,  1.000f,      0.000f,  0.000f,  0.000f,
-    /*212*/    3.000f, -3.000f, -3.000f,      1.000f,  1.000f,  1.000f,      0.000f,  0.000f,  0.000f,
-    /*213*/   -3.000f,  3.000f,  3.000f,      1.000f,  1.000f,  1.000f,      0.000f,  0.000f,  0.000f,
-    /*214*/   -3.000f, -3.000f,  3.000f,      1.000f,  1.000f,  1.000f,      0.000f,  0.000f,  0.000f,
-    /*215*/    3.000f,  3.000f,  3.000f,      1.000f,  1.000f,  1.000f,      0.000f,  0.000f,  0.000f,
-    /*216*/    3.000f, -3.000f,  3.000f,      1.000f,  1.000f,  1.000f,      0.000f,  0.000f,  0.000f,
-
-
 };
     
 
 GLuint indices[] = {
 
-    209, 210, 211,
-    210, 212, 211,
     //left foot base
      0,  2,  1,
      0,  3,  2,
@@ -789,22 +776,36 @@ GLuint indices[] = {
      206, 208, 207,
 };
 
-// Aidx, Bidx, and Cidx are indices from the 'indices' array, representing one triangle.
-// A, B, and C are the positions of the vertices that form that triangle.
-    // glm::vec3 get_normal(int Aidx, int Bidx, int Cidx){
-    //     glm::vec3 A = glm::vec3(vertices[Aidx*9], vertices[Aidx*9+1], vertices[Aidx*9+2]);
-    //     glm::vec3 B = glm::vec3(vertices[Bidx*9], vertices[Bidx*9+1], vertices[Bidx*9+2]);
-    //     glm::vec3 C = glm::vec3(vertices[Cidx*9], vertices[Cidx*9+1], vertices[Cidx*9+2]);
 
-    //     // formula for the normal vector | normalize((B-A) x (C-A))
-    //     return glm::normalize(glm::cross((B-A), (C-A)));
-    // };
+float bgVertices[] {
+
+            // position (x, y, z)            color (r, g, b)                
+    /*0*/     -3.000f,  3.000f, -3.000f,      0.000f,  0.000f,  0.000f, 
+    /*1*/     -3.000f, -3.000f, -3.000f,      0.000f,  0.000f,  0.000f, 
+    /*2*/      3.000f,  3.000f, -3.000f,      0.000f,  0.000f,  0.000f, 
+    /*3*/      3.000f, -3.000f, -3.000f,      0.000f,  0.000f,  0.000f, 
+    /*4*/     -3.000f,  3.000f,  3.000f,      0.000f,  0.000f,  0.000f, 
+    /*5*/     -3.000f, -3.000f,  3.000f,      0.000f,  0.000f,  0.000f, 
+    /*6*/      3.000f,  3.000f,  3.000f,      0.000f,  0.000f,  0.000f, 
+    /*7*/      3.000f, -3.000f,  3.000f,      0.000f,  0.000f,  0.000f, 
+};
+
+GLuint bgIndices[] = {
+    0, 1, 2,
+    1, 3, 2,
+    0, 4, 1,
+    1, 4, 5,
+    4, 6, 5,
+    5, 6, 7,
+    2, 7, 6,
+    2, 3, 7,
+};
 
 
 // define OpenGL object IDs to represent the vertex array and the shader program in the GPU
-GLuint vao;         // vertex array object (stores the render state for our vertex array)
-GLuint vbo;         // vertex buffer object (reserves GPU memory for our vertex array)
-GLuint ebo;         // vertex buffer object (reserves GPU memory for our vertex array)
+GLuint vao1, vao2;         // vertex array object (stores the render state for our vertex array)
+GLuint vbo1, vbo2;         // vertex buffer object (reserves GPU memory for our vertex array)
+GLuint ebo1, ebo2;         // vertex buffer object (reserves GPU memory for our vertex array)
 GLuint shader;      // combined vertex and fragment shader
 GLuint texture1;
 GLuint texture2;
@@ -814,59 +815,20 @@ GLuint texture3;
 // arrays, shader programs, etc.; returns true if successful, false otherwise
 bool setup()
 {
-    //Used print out the normals of each triangle, along with its corresponding position, color and piece
-        // int step = 9;
-        // int idxCount = sizeof(indices)/4;
-        // for(int i = 0; i < idxCount; i += 3) {
-        //     glm::vec3 normal = get_normal(indices[i], indices[i+1], indices[i+2]);
-        //     for (int j = 0; j < 3; j++){
-        //         glm::vec3 A(vertices[indices[i+j]*step], vertices[indices[i+j]*step+1], vertices[indices[i+j]*step+2]);
-        //         glm::vec4 B(vertices[indices[i+j]*step+3], vertices[indices[i+j]*step+4], vertices[indices[i+j]*step+5], vertices[indices[i+j]*step+6]);
-        //         printf("/*%d*/    % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,\n", 
-        //                 indices[i+j],A.x, A.y, A.z, B.x, B.y, B.z, normal.x, normal.y, normal.z);
-        //     }
-        // };
-    
-    // For smoothing; This gets the average of the normals 
-        // int step = 9;
-        // for (int i = 0; i < sizeof(vertices)/(step*4); i++){
-        //     glm::vec3 currVerts(vertices[i*step], vertices[i*step+1], vertices[i*step+2]);
-        //     glm::vec3 totalNormal(0,0,0);
-        //     glm::vec3 finalNormal(0,0,0);
-
-        //     float totalVerts = 0;
-
-        //     for (int j = 0; j < sizeof(vertices)/(step*4); j++){
-        //         glm:: vec3 compVerts(vertices[j*step], vertices[j*step+1], vertices[j*step+2]);
-        //         if (glm::distance(currVerts, compVerts) <= 0.001f){
-        //             totalNormal += glm::vec3(vertices[j*step+7], vertices[j*step+8], vertices[j*step+9]);
-        //             totalVerts++;
-        //         }
-        //     }
-
-        //     if (totalVerts > 0){
-        //         finalNormal = glm::normalize(totalNormal / totalVerts);
-        //         printf("    % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,     % 0.3ff, % 0.3ff, % 0.3ff,\n", 
-        //                 currVerts.x, currVerts.y, currVerts.z,
-        //                 vertices[i*step+3], vertices[i*step+4], vertices[i*step+5], 
-        //                 finalNormal.z, finalNormal.x, finalNormal.y);
-        //     }
-        // }
-
     // generate the VAO and VBO objects and store their IDs in vao and vbo, respectively
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
+    glGenVertexArrays(1, &vao1);
+    glGenBuffers(1, &vbo1);
+    glGenBuffers(1, &ebo1);
 
     // bind the newly-created VAO to make it the current one that OpenGL will apply state changes to
-    glBindVertexArray(vao);
+    glBindVertexArray(vao1);
 
     // upload our vertex array data to the newly-created VBO
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo1);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
      //added ebo for uploading index array data to the newly create EBO
-     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo1);
      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
  
     // on the VAO, register the current VBO with the following vertex attribute layout:
@@ -886,6 +848,26 @@ bool setup()
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
+    
+    // BACKGROUND
+    glGenVertexArrays(1, &vao2);
+    glGenBuffers(1, &vbo2);
+    glGenBuffers(1, &ebo2);
+
+    glBindVertexArray(vao2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(bgVertices), bgVertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo2);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(bgIndices), bgIndices, GL_STATIC_DRAW);
+ 
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
 
     glEnable(GL_CULL_FACE); 
 
@@ -901,7 +883,7 @@ bool setup()
     if (! texture1) return false;
     texture2 = gdevLoadTexture("glass.png", GL_REPEAT, true, true);
     if (! texture2) return false;
-    texture3 = gdevLoadTexture("stars.jpg", GL_REPEAT, true, true);
+    texture3 = gdevLoadTexture("stars.png", GL_REPEAT, true, true);
     if (! texture3) return false;
 
     return true;
@@ -953,7 +935,10 @@ void render()
 
     //set the default view of the camera
     projectionViewMatrix *= view;
-    
+
+
+    glBindVertexArray(vao1);
+
     //middle amogus
     glm::mat4 modelMatrix = glm::mat4(1.0f); // set to identity first!
 
@@ -1007,8 +992,19 @@ void render()
     glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
     glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
 
+
     // ... draw our triangles
-    glBindVertexArray(vao);    
+    //glBindVertexArray(vao1);
+    
+    glBindVertexArray(vao2); 
+
+    modelMatrix = glm::mat4(1.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+    glBindVertexArray(vao2);
+    glDrawElements(GL_TRIANGLES, sizeof(bgIndices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+    
+    
     processInput(pWindow);
 }
 
