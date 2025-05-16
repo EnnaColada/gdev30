@@ -26,7 +26,13 @@ void main()
     gl_Position = projMatrix * vec4(worldSpacePos, 1.0f);
 
     shaderTexCoord = vec2 ((vertexPosition.xy+1)/2);
-    shaderPiece = (objColor == vec3(0.000f,  1.000f,  1.000f)) ? 1.0f : 0.0f;
 
+    shaderPiece = 0.0f;
+    //red
+    if (objColor == vec3(0.702f,  0.129f,  0.075f) || objColor == vec3(0.561f,  0.086f,  0.000f))
+        shaderPiece = 1.0f; 
+    //glass
+    else if (objColor == vec3(0.000f,  1.000f,  1.000f))
+        shaderPiece = 2.0f;
     
 }

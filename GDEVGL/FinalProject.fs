@@ -30,18 +30,18 @@ void main()
     vec3 finalColor = lightColor * (diffColor + ambColor + specular);
 
 
-    if (shaderPiece == 0.0f)
+    if (shaderPiece == 1.0f)
         fragmentColor = vec4(objColor, 1.0f)
                             * texture(texture1, shaderTexCoord)
                             * vec4(finalColor, 1.0f);
-    else
+    else if (shaderPiece == 2.0f)
         fragmentColor = vec4(objColor * finalColor, 1.0f)
                             + texture(texture2, 
                             shaderTexCoord + vec2(0.2f*time, 0.2f*time))
                             * vec4(finalColor, 1.0f);  
-
-    // if (shaderPiece == 0.0f)
-    //     fragmentColor = vec4(objColor, 1.0f);//*texture(texture1, shaderTexCoord);
+    else
+        fragmentColor = vec4(objColor, 1.0f)* vec4(finalColor, 1.0f);//*texture(texture1, shaderTexCoord);
+    
     // else
     //     fragmentColor = vec4(objColor, 1.0f)+texture(texture2, shaderTexCoord+ vec2(0.2f*time, 0.2f*time));
 }
