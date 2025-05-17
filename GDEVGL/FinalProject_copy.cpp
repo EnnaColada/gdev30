@@ -59,6 +59,9 @@ bool isStabbing = false;
 float animationStartTime = 0.0f;
 bool fKeyPressed = false;
 
+int bloodCount = 0;
+bool bloodSpawned = false;
+glm::mat4 bloodMatrices[3];
 
 float impostorVertices[] = { 
  
@@ -1721,21 +1724,73 @@ void render()
 
 
     //blood
-    glBindVertexArray(vaoBlood);
-    modelMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.0f, 0.0f, 2.999f));
+    //glBindVertexArray(vaoBlood);
+    // modelMatrix = glm::mat4(1.0f);
+    // modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.0f, 0.0f, 2.999f));
 
-    if (isStabbing){
+
+    // if (isStabbing){
+    //     glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+    //     glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    //     glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+    //     glDrawArrays(GL_TRIANGLES, 0, sizeof(bloodVertices) / (3 * sizeof(float)));
+    // }
+    
+    // if(isStabbing && !bloodSpawned){
+    //     bloodSpawned = true;
+    //     for (int i = 0; i <= 3; i++){
+    //         float x = ((float)rand() / RAND_MAX) * 0.675f;
+    //         float y = ((float)rand() / RAND_MAX) * 0.5f - 0.3f;
+    //         float scale = 0.5f + ((float)rand() / RAND_MAX) * 0.5f;
+    //         float rotation = ((float)rand() / RAND_MAX) * 360.0f;
+
+    //         glm::mat4 modelMatrix = glm::mat4(1.0f);
+    //         modelMatrix = glm::translate(modelMatrix, glm::vec3(x, y, 2.999f));
+    //         modelMatrix  = glm::rotate(modelMatrix, glm::radians(rotation), glm::vec3(0, 0, 1));
+    //         modelMatrix  = glm::scale(modelMatrix, glm::vec3(scale));
+
+    //         glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+    //         glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    //         glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+    //         glDrawArrays(GL_TRIANGLES, 0, sizeof(bloodVertices) / (3 * sizeof(float)));
+
+    //     }
+    
+    // }
+    if (isStabbing && !bloodSpawned) {
+    bloodSpawned = true;
+    for (int i = 0; i < 3; i++) {
+        float x = ((float)rand() / RAND_MAX) * 0.675f;
+        float y = ((float)rand() / RAND_MAX) * 0.5f - 0.3f;
+        float scale = 0.5f + ((float)rand() / RAND_MAX) * 0.5f;
+        float rotation = ((float)rand() / RAND_MAX) * 360.0f;
+
+        glm::mat4 mat = glm::mat4(1.0f);
+        mat = glm::translate(mat, glm::vec3(x-1.0f, y, 2.999f));
+        mat = glm::rotate(mat, glm::radians(rotation), glm::vec3(0, 0, 1));
+        mat = glm::scale(mat, glm::vec3(scale));
+        
+
+        bloodMatrices[i] = mat;
+    }
+}
+
+if (bloodSpawned && halfAppear == 1) {
+    glBindVertexArray(vaoBlood);
+    for (int i = 0; i < 3; i++) {
         glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(bloodMatrices[i]));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(bloodMatrices[i]))));
 
         glDrawArrays(GL_TRIANGLES, 0, sizeof(bloodVertices) / (3 * sizeof(float)));
     }
-
-    processInput(pWindow);
 }
-
+    
+    processInput(pWindow);
+    
+}
 /*****************************************************************************/
 
 // handler called by GLFW when there is a keyboard event
@@ -1850,8 +1905,10 @@ void processInput(GLFWwindow *window)
             isStabbing = true;
             animationStartTime = glfwGetTime();
         }
-        else
+        else{
             halfAppear = 1;
+            bloodSpawned = false;
+        }
     }
 
     if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
