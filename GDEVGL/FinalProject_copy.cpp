@@ -60,8 +60,8 @@ float animationStartTime = 0.0f;
 bool fKeyPressed = false;
 
 int bloodCount = 0;
-bool bloodSpawned = false;
-glm::mat4 bloodMatrices[3];
+bool spawnBlood = false;
+glm::mat4 bloodMatrices[10];
 
 float impostorVertices[] = { 
  
@@ -1694,10 +1694,13 @@ void render()
         if (elapsed >= 3/2) {
             isStabbing = false;
             halfAppear = -1;
-            offset = 0.0f; // Reset knife position
+            offset = 0.0f;
+            bloodCount = 0;
         } else {
             offset = abs(sin(elapsed * 2 * 3.14f)) * 1.45f;
             modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, offset));
+            if (offset > 1.445f)
+                spawnBlood = true;
         }
     }
 
@@ -1724,72 +1727,33 @@ void render()
 
 
     //blood
-    //glBindVertexArray(vaoBlood);
-    // modelMatrix = glm::mat4(1.0f);
-    // modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.0f, 0.0f, 2.999f));
-
-
-    // if (isStabbing){
-    //     glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
-    //     glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-    //     glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
-
-    //     glDrawArrays(GL_TRIANGLES, 0, sizeof(bloodVertices) / (3 * sizeof(float)));
-    // }
-    
-    // if(isStabbing && !bloodSpawned){
-    //     bloodSpawned = true;
-    //     for (int i = 0; i <= 3; i++){
-    //         float x = ((float)rand() / RAND_MAX) * 0.675f;
-    //         float y = ((float)rand() / RAND_MAX) * 0.5f - 0.3f;
-    //         float scale = 0.5f + ((float)rand() / RAND_MAX) * 0.5f;
-    //         float rotation = ((float)rand() / RAND_MAX) * 360.0f;
-
-    //         glm::mat4 modelMatrix = glm::mat4(1.0f);
-    //         modelMatrix = glm::translate(modelMatrix, glm::vec3(x, y, 2.999f));
-    //         modelMatrix  = glm::rotate(modelMatrix, glm::radians(rotation), glm::vec3(0, 0, 1));
-    //         modelMatrix  = glm::scale(modelMatrix, glm::vec3(scale));
-
-    //         glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
-    //         glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-    //         glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
-
-    //         glDrawArrays(GL_TRIANGLES, 0, sizeof(bloodVertices) / (3 * sizeof(float)));
-
-    //     }
-    
-    // }
-    if (isStabbing && !bloodSpawned) {
-    bloodSpawned = true;
-    for (int i = 0; i < 3; i++) {
-        float x = ((float)rand() / RAND_MAX) * 0.675f;
-        float y = ((float)rand() / RAND_MAX) * 0.5f - 0.3f;
+    glBindVertexArray(vaoBlood);
+    if (spawnBlood){     
         float scale = 0.5f + ((float)rand() / RAND_MAX) * 0.5f;
         float rotation = ((float)rand() / RAND_MAX) * 360.0f;
 
-        glm::mat4 mat = glm::mat4(1.0f);
-        mat = glm::translate(mat, glm::vec3(x-1.0f, y, 2.999f));
-        mat = glm::rotate(mat, glm::radians(rotation), glm::vec3(0, 0, 1));
-        mat = glm::scale(mat, glm::vec3(scale));
+        modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.0f, 0.0f, 2.999f));
+        modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation), glm::vec3(0, 0, 1));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(scale, scale, 1));
         
-
-        bloodMatrices[i] = mat;
+        bloodMatrices[bloodCount++] = modelMatrix;
+        spawnBlood = false;
     }
-}
 
-if (bloodSpawned && halfAppear == 1) {
-    glBindVertexArray(vaoBlood);
-    for (int i = 0; i < 3; i++) {
-        glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(bloodMatrices[i]));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(bloodMatrices[i]))));
+    if (isStabbing && halfAppear == 1) {
+        for (int i = 0; i < bloodCount; i++) {
 
-        glDrawArrays(GL_TRIANGLES, 0, sizeof(bloodVertices) / (3 * sizeof(float)));
+            normalMatrix = glm::transpose(glm::inverse(bloodMatrices[i]));
+            glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+            glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(bloodMatrices[i]));
+            glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+            glDrawArrays(GL_TRIANGLES, 0, sizeof(bloodVertices) / (3 * sizeof(float)));
+        }
     }
-}
     
     processInput(pWindow);
-    
 }
 /*****************************************************************************/
 
@@ -1907,7 +1871,6 @@ void processInput(GLFWwindow *window)
         }
         else{
             halfAppear = 1;
-            bloodSpawned = false;
         }
     }
 
