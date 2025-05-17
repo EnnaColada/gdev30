@@ -46,7 +46,7 @@ void main()
     else if (shaderPiece == 3.0f){
         fragmentColor = vec4(objColor * finalColor, 1.0f)
                             + texture(texture3, 
-                            shaderTexCoord + vec2(0.2f*time, 0.2f*time));
+                            shaderTexCoord + vec2(0.05f*time, 0.05f*time));
     } 
     else 
         fragmentColor = vec4(objColor, 1.0f)* vec4(finalColor, 1.0f);//*texture(texture1, shaderTexCoord);
@@ -62,6 +62,4 @@ void main()
     //                         shaderTexCoord + vec2(0.2f*time, 0.2f*time))
     //                         * vec4(finalColor, 1.0f);
 
-    // else
-    //     fragmentColor = vec4(objColor, 1.0f)+texture(texture2, shaderTexCoord+ vec2(0.2f*time, 0.2f*time));
 }

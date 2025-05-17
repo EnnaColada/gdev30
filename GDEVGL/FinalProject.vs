@@ -33,10 +33,13 @@ void main()
         vertexColor == vec3(0.961f, 0.961f, 0.341f) ||  //yellow
         vertexColor == vec3(0.801f, 0.612f, 0.133f))    //yellow shadow
         shaderPiece = 1.0f; //fabric texture
-    else if (vertexColor == vec3(0.000f,  1.000f,  1.000f))    //glass
+    else if (vertexColor == vec3(0.000f,  1.000f,  1.000f)|| vertexColor == vec3 (0.000f,  0.500f,  0.500f))    //glass
         shaderPiece = 2.0f;
-    else if (vertexColor == vec3(0.000f,  0.000f,  0.000f))    //stars
+    else if (vertexColor == vec3(0.000f,  0.000f,  0.000f)){   //stars
         shaderPiece = 3.0f;
+        shaderTexCoord = vec2 ((vertexPosition.xy+1)/25);
+
+    }
         
     
 }

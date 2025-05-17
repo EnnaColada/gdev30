@@ -901,7 +901,7 @@ bool setup()
     if (! texture1) return false;
     texture2 = gdevLoadTexture("glass.png", GL_REPEAT, true, true);
     if (! texture2) return false;
-    texture3 = gdevLoadTexture("stars.jpg", GL_REPEAT, true, true);
+    texture3 = gdevLoadTexture("stars.png", GL_REPEAT, true, true);
     if (! texture3) return false;
 
     return true;
@@ -936,7 +936,7 @@ void render()
 
     glUniform1i(glGetUniformLocation(shader, "texture1"), 0);
     glUniform1i(glGetUniformLocation(shader, "texture2"), 1);
-    glUniform1i(glGetUniformLocation(shader, "texture2"), 2);
+    glUniform1i(glGetUniformLocation(shader, "texture3"), 2);
     glUniform1f(glGetUniformLocation(shader, "time"), time);
     glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition.x, lightPosition.y,  lightPosition.z);
     glUniform3f(glGetUniformLocation(shader, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
