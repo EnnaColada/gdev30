@@ -59,6 +59,7 @@ bool isStabbing = false;
 float animationStartTime = 0.0f;
 bool fKeyPressed = false;
 
+
 float impostorVertices[] = { 
  
             // position (x, y, z)            color (r, g, b)                normals(x, y, z)
@@ -1124,7 +1125,7 @@ float topHalfVertices[] = {
     /*59*/     0.375f,  0.400f,  0.774f,      0.000f,  1.000f,  1.000f,     -0.089f,  0.180f,  0.980f,
     /*60*/    -0.225f,  0.650f,  0.724f,      0.000f,  1.000f,  1.000f,      0.379f,  0.645f,  0.663f,
     /*61*/     0.225f,  0.650f,  0.724f,      0.000f,  1.000f,  1.000f,     -0.031f,  0.703f,  0.711f,
-    
+   
             // backpack
     /*62*/    -0.675f, -0.300f, -0.500f,      0.561f,  0.086f,  0.000f,      0.289f, -0.856f, -0.428f,
     /*63*/     0.675f, -0.300f, -0.500f,      0.561f,  0.086f,  0.000f,     -0.517f, -0.383f, -0.766f,
@@ -1275,21 +1276,6 @@ GLuint topHalfIndices[] = {
 };
 
 
-float bgVertices[] {
-
-            // position (x, y, z)                color (r, g, b)                
-    /*0*/     -50.000f,  50.000f, -50.000f,      0.000f,  0.000f,  0.000f, 
-    /*1*/     -50.000f, -50.000f, -50.000f,      0.000f,  0.000f,  0.000f, 
-    /*2*/      50.000f,  50.000f, -50.000f,      0.000f,  0.000f,  0.000f,
-    /*3*/      50.000f, -50.000f, -50.000f,      0.000f,  0.000f,  0.000f, 
-};
-
-GLuint bgIndices[] = {
-    0, 1, 2,
-    1, 3, 2,
-};
-
-
 float knifeVertices[] = {
     
             // position (x, y, z)           color (r, g, b)                normals (x, y, z)      
@@ -1394,15 +1380,43 @@ GLuint knifeIndices[] = {
 };
 
 
+float bgVertices[] {
+
+            // position (x, y, z)                color (r, g, b)                
+    /*0*/     -50.000f,  50.000f, -50.000f,      0.000f,  0.000f,  0.000f, 
+    /*1*/     -50.000f, -50.000f, -50.000f,      0.000f,  0.000f,  0.000f, 
+    /*2*/      50.000f,  50.000f, -50.000f,      0.000f,  0.000f,  0.000f,
+    
+    /*1*/     -50.000f, -50.000f, -50.000f,      0.000f,  0.000f,  0.000f, 
+    /*3*/      50.000f, -50.000f, -50.000f,      0.000f,  0.000f,  0.000f,
+    /*2*/      50.000f,  50.000f, -50.000f,      0.000f,  0.000f,  0.000f,
+
+};
+
+
+float bloodVertices[]{
+
+           // position (x, y, z)           color (r, g, b)                normals (x, y, z)      
+    /*0*/     0.049f, -0.300f, -0.500f,      1.000f,  1.000f,  1.000f,      0.289f, -0.856f, -0.428f,
+    /*1*/     0.049f,  0.100f, -0.500f,      1.000f,  1.000f,  1.000f,     -0.391f,  0.051f, -0.919f,
+    /*2*/     0.450f, -0.300f, -0.500f,      1.000f,  1.000f,  1.000f,     -0.517f, -0.383f, -0.766f,
+    
+    /*2*/     0.450f, -0.300f, -0.500f,      1.000f,  1.000f,  1.000f,     -0.517f, -0.383f, -0.766f,
+    /*1*/     0.049f,  0.100f, -0.500f,      1.000f,  1.000f,  1.000f,     -0.391f,  0.051f, -0.919f,
+    /*3*/     0.450f,  0.100f, -0.500f,      1.000f,  1.000f,  1.000f,      0.410f,  0.025f, -0.912f,
+
+};
+
 
 // define OpenGL object IDs to represent the vertex array and the shader program in the GPU
-GLuint vaoImp, vaoBot, vaoTop, vaoBG, vaoKnife;         // vertex array object (stores the render state for our vertex array)
-GLuint vboImp, vboBot, vboTop, vboBG, vboKnife;         // vertex buffer object (reserves GPU memory for our vertex array)
-GLuint eboImp, eboBot, eboTop, eboBG, eboKnife;         // vertex buffer object (reserves GPU memory for our vertex array)
+GLuint vaoImp, vaoBot, vaoTop, vaoKnife, vaoBG, vaoBlood;         // vertex array object (stores the render state for our vertex array)
+GLuint vboImp, vboBot, vboTop, vboKnife, vboBG, vboBlood;         // vertex buffer object (reserves GPU memory for our vertex array)
+GLuint eboImp, eboBot, eboTop, eboKnife;         // vertex buffer object (reserves GPU memory for our vertex array)
 GLuint shader;      // combined vertex and fragment shader
 GLuint texture1;
 GLuint texture2;
 GLuint texture3;
+GLuint texture4;
 
 // called by the main function to do initial setup, such as uploading vertex
 // arrays, shader programs, etc.; returns true if successful, false otherwise
@@ -1487,15 +1501,11 @@ bool setup()
     //bg
     glGenVertexArrays(1, &vaoBG);
     glGenBuffers(1, &vboBG);
-    glGenBuffers(1, &eboBG);
 
     glBindVertexArray(vaoBG);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboBG);
     glBufferData(GL_ARRAY_BUFFER, sizeof(bgVertices), bgVertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboBG);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(bgIndices), bgIndices, GL_STATIC_DRAW);
  
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
@@ -1525,7 +1535,27 @@ bool setup()
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    glEnable(GL_CULL_FACE); 
+    // Blood
+    glGenVertexArrays(1, &vaoBlood);
+    glGenBuffers(1, &vboBlood);
+
+    glBindVertexArray(vaoBlood);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboBlood);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(bloodVertices), bloodVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*) (3 * sizeof(float)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*) (6 * sizeof(float)));
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+    
 
     // important: if you have more vertex arrays to draw, make sure you separately define them
     // with unique VAO and VBO IDs, and follow the same process above to upload them to the GPU
@@ -1541,6 +1571,8 @@ bool setup()
     if (! texture2) return false;
     texture3 = gdevLoadTexture("stars.png", GL_REPEAT, true, true);
     if (! texture3) return false;
+    texture4 = gdevLoadTexture("blood.png", GL_REPEAT, true, true);
+    if (! texture4) return false;
 
     return true;
 }
@@ -1570,11 +1602,13 @@ void render()
     glBindTexture(GL_TEXTURE_2D, texture2);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, texture3);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, texture4);
     
-
     glUniform1i(glGetUniformLocation(shader, "texture1"), 0);
     glUniform1i(glGetUniformLocation(shader, "texture2"), 1);
     glUniform1i(glGetUniformLocation(shader, "texture3"), 2);
+    glUniform1i(glGetUniformLocation(shader, "texture4"), 3);
     glUniform1f(glGetUniformLocation(shader, "time"), time);
     glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition.x, lightPosition.y,  lightPosition.z);
     glUniform3f(glGetUniformLocation(shader, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
@@ -1644,21 +1678,6 @@ void render()
         glDrawElements(GL_TRIANGLES, sizeof(topHalfIndices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
     }
 
-
-    //bg
-    glBindVertexArray(vaoBG);
-
-    modelMatrix = glm::mat4(1.0f);
-    for (int i = 0; i < 6; i++) {
-        if (i < 4)  
-            modelMatrix = glm::rotate(modelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));                //rotate along the y-axis and get the first 4 sides of the cube      
-        else
-            modelMatrix = glm::rotate(modelMatrix, glm::radians(90.0f * (i - 3)), glm::vec3(1.0f, 0.0f, 0.0f));      //rotate along the x-axis and get the top and bottom sides of the cube
-
-        glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
-        glDrawElements(GL_TRIANGLES, sizeof(bgIndices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
-    }
     
     //knife
     glBindVertexArray(vaoKnife); 
@@ -1674,17 +1693,45 @@ void render()
             halfAppear = -1;
             offset = 0.0f; // Reset knife position
         } else {
-            offset = abs(sin(elapsed * 2 * 3.14f)) * 1.5f;
+            offset = abs(sin(elapsed * 2 * 3.14f)) * 1.45f;
             modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, offset));
         }
     }
-
 
     glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
     glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
     glBindVertexArray(vaoKnife);
     glDrawElements(GL_TRIANGLES, sizeof(knifeIndices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
+
+    //bg
+    glBindVertexArray(vaoBG);
+
+    modelMatrix = glm::mat4(1.0f);
+    for (int i = 0; i < 6; i++) {
+        if (i < 4)  
+            modelMatrix = glm::rotate(modelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));                //rotate along the y-axis and get the first 4 sides of the cube      
+        else
+            modelMatrix = glm::rotate(modelMatrix, glm::radians(90.0f * (i - 3)), glm::vec3(1.0f, 0.0f, 0.0f));      //rotate along the x-axis and get the top and bottom sides of the cube
+
+        glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+        glDrawArrays(GL_TRIANGLES, 0, sizeof(bgVertices) / (3 * sizeof(float)));
+    }
+
+
+    //blood
+    glBindVertexArray(vaoBlood);
+    modelMatrix = glm::mat4(1.0f);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.0f, 0.0f, 2.999f));
+
+    if (isStabbing){
+        glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "norMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+        glDrawArrays(GL_TRIANGLES, 0, sizeof(bloodVertices) / (3 * sizeof(float)));
+    }
 
     processInput(pWindow);
 }

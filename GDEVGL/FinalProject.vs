@@ -38,8 +38,10 @@ void main()
     else if (vertexColor == vec3(0.000f,  0.000f,  0.000f)){   //stars
         shaderPiece = 3.0f;
         shaderTexCoord = vec2 ((vertexPosition.xy+1)/25);
-
     }
-        
+    else if (vertexColor == vec3(1.000f,  1.000f,  1.000f)){    //blood
+        shaderPiece = 4.0f;
+        shaderTexCoord = vec2 ((vertexPosition.x-0.450f)/0.4, (vertexPosition.y+0.300f)/0.4);
+    }
     
 }
