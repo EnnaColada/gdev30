@@ -7,10 +7,9 @@
 *     mouse - look around
 *     [ - decrease light level
 *     ] - increase light level
-*     up - move light source up
-*     down - move light source down
 *     - - decrease specularity
 *     + - increase specularity
+*     F - kill amogus/reset scene
 ******************************************************************************/
 
 #include <iostream>
@@ -49,7 +48,6 @@ bool firstMouse = true;
 
 glm::vec3 lightPosition;
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-// glm::vec4 lightViewPosition;
 float specularity = 0.5f;
 float lightHeight = 2.0f;
 int pauseLight = 1;
@@ -1588,14 +1586,8 @@ void render()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     float time = glfwGetTime();
-    
-    // glm::mat2 lightRotate = glm::mat2(cos(time), sin(time), -sin(time), cos(time));
 
-    // glm::vec2 start = glm::vec2(1.5f, 1.5f);
-    // glm::vec2 temp = lightRotate*start;
-
-    // lightPosition = glm::vec3(temp.x, lightHeight, temp.y);
-    lightPosition = cameraPos + (cameraFront * 1.0f) + glm::vec3(0.0f, 1.0f, 0.0f);
+    lightPosition = cameraPos + (cameraFront * 1.0f) + glm::vec3(0.0f, 1.0f, 0.0f); //light follows camera
 
     // using our shader program...
     glUseProgram(shader);
@@ -1617,6 +1609,7 @@ void render()
     glUniform1f(glGetUniformLocation(shader, "time"), time);
     glUniform3fv(glGetUniformLocation(shader, "lightPosition"), 1, glm::value_ptr(lightPosition));
     glUniform3f(glGetUniformLocation(shader, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
+    glUniform3fv(glGetUniformLocation(shader, "cameraPos"), 1, glm::value_ptr(cameraPos));
     glUniform1f(glGetUniformLocation(shader, "specColor"), specularity);
 
 
@@ -1628,13 +1621,6 @@ void render()
     glm::mat4 view;
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-    
-    // lightViewPosition = view * glm::vec4(lightPosition, 1.0f);
-    // lightDir = glm::normalize(cameraDirection);
-    
-    // glUniform3f(glGetUniformLocation(shader, "lightDirection"), lightDir.x, lightDir.y,  lightDir.z);
-
-    //set the default view of the camera
     projectionViewMatrix *= view;
 
     glBindVertexArray(vaoImp);
@@ -1858,10 +1844,6 @@ void processInput(GLFWwindow *window)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        lightHeight += 0.05f;
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        lightHeight -= 0.05f;
     if (glfwGetKey(window, GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS)
         lightColor -= 0.05f;
     if (glfwGetKey(window, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS)
