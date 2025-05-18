@@ -1621,7 +1621,6 @@ void render()
     glm::mat4 modelMatrix = glm::mat4(1.0f); // set to identity first!
 
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
     glm::mat4 normalMatrix;
     normalMatrix = glm::transpose(glm::inverse(modelMatrix));
@@ -1639,7 +1638,6 @@ void render()
     modelMatrix = glm::mat4(1.0f); // set to identity first!
 
     modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.0f, 0.0f, 3.0f));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
     normalMatrix = glm::transpose(glm::inverse(modelMatrix));
 
@@ -1656,7 +1654,6 @@ void render()
     modelMatrix = glm::mat4(1.0f); // set to identity first!
 
     modelMatrix = glm::translate(modelMatrix, glm::vec3(-1.0f, 0.0f, 3.0f));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
     normalMatrix = glm::transpose(glm::inverse(modelMatrix));
 
