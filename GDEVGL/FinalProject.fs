@@ -36,7 +36,7 @@ void main()
 
     float diffColor = max(dot(lightVec, norm), 0);
 
-    vec3 finalColor = lightColor * (diffColor + ambColor + specular)*attenuation;
+    vec3 finalColor = lightColor * (diffColor + ambColor + specular) * attenuation;
 
     if (shaderPiece == 1.0f){
         fragmentColor = vec4(objColor, 1.0f)

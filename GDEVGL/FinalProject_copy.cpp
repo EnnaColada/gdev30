@@ -28,12 +28,6 @@ glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
-glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-
-glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); 
-glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -44,7 +38,6 @@ float lastX = 320, lastY = 180;
 float yaw = -90.0f, pitch = 0.0f;
 float fov = 45.0f;
 bool firstMouse = true;
-
 
 glm::vec3 lightPosition;
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
