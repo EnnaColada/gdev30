@@ -13,6 +13,7 @@ uniform sampler2D texture4;
 uniform float time;
 uniform vec3 lightPosition;
 uniform vec3 lightColor;
+// uniform vec3 lightDirection;
 uniform float specColor;
 
 // vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
@@ -24,11 +25,14 @@ void main()
 {
     vec3 lightVec = normalize(lightPosition - worldSpacePos);
     vec3 norm = normalize(worldSpaceNorm);
+
+    vec3 viewDir = normalize(-worldSpacePos);
     vec3 reflectVec = reflect(-lightVec, norm);
-    float spec = pow(max(dot(lightVec, reflectVec), 0.0), 32);
+    float spec = pow(max(dot(viewDir, reflectVec), 0.0), 32);
     vec3 specular = specColor * spec * lightColor; 
 
     float diffColor = max(dot(lightVec, norm), 0);
+    
     vec3 finalColor = lightColor * (diffColor + ambColor + specular);
 
 
@@ -50,9 +54,14 @@ void main()
                             shaderTexCoord + vec2(0.05f*time, 0.05f*time));
     } 
     else if (shaderPiece == 4.0f){
-        // vec4 texColor = texture(texture4, shaderTexCoord);
-        // if (texColor.a < 0.1) discard;
-        fragmentColor = texture(texture4, shaderTexCoord);
+        vec4 texColor = texture(texture4, shaderTexCoord);
+        if (texColor.a < 0.1) {
+            discard;
+        }
+        else {
+            texColor.a = 0.7f;
+        }
+        fragmentColor = texColor;
                             //* vec4(finalColor, 1.0f);
     } 
     else {
