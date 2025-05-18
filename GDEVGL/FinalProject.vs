@@ -7,6 +7,7 @@ layout (location = 2) in vec3 vertexNormal;
 uniform mat4 projMatrix;
 uniform mat4 modMatrix;
 uniform mat4 norMatrix;
+uniform int forceRed;
 
 out vec3 shaderColor;
 out vec2 shaderTexCoord;
@@ -43,5 +44,12 @@ void main()
         shaderPiece = 4.0f;
         shaderTexCoord = vec2 ((vertexPosition.x-0.450f)/0.4, (vertexPosition.y+0.300f)/0.4);
     }
-    
+
+
+    if (forceRed == 1 && vertexColor == vec3(0.961f, 0.961f, 0.341f)) {
+        objColor = vec3(0.702f, 0.129f, 0.075f); // red
+    } 
+    if (forceRed == 1 && vertexColor == vec3(0.801f, 0.612f, 0.133f)) {
+        objColor = vec3(0.561f, 0.086f, 0.000f); // red
+    } 
 }
