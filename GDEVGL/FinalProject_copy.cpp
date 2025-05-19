@@ -58,7 +58,7 @@ glm::mat4 bloodMatrices[10];
 
 float botHalfVertices[] = {
 
-            // position (x, y, z)            color (r, g, b)                normals(x, y, z)
+            // position (x, y, z)            color (r, g, b)                 normals(x, y, z)
             // base feet
     /*0*/     -0.525f, -1.000f,  0.000f,      0.961f,  0.961f,  0.341f,     -0.664f, -0.596f, -0.452f,
     /*1*/     -0.650f, -1.000f,  0.217f,      0.961f,  0.961f,  0.341f,     -0.785f, -0.620f,  0.007f,
@@ -789,7 +789,7 @@ float bgVertices[] {
 
 float bloodVertices[]{
 
-           // position (x, y, z)           color (r, g, b)                normals (x, y, z)      
+           // position (x, y, z)            color (r, g, b)                normals (x, y, z)      
     /*0*/     0.049f, -0.300f, -0.500f,      1.000f,  1.000f,  1.000f,      0.289f, -0.856f, -0.428f,
     /*1*/     0.049f,  0.100f, -0.500f,      1.000f,  1.000f,  1.000f,     -0.391f,  0.051f, -0.919f,
     /*2*/     0.450f, -0.300f, -0.500f,      1.000f,  1.000f,  1.000f,     -0.517f, -0.383f, -0.766f,
@@ -815,6 +815,7 @@ GLuint texture4;
 // arrays, shader programs, etc.; returns true if successful, false otherwise
 bool setup()
 {
+
     //bot half   
     // generate the VAO and VBO objects and store their IDs in vao and vbo, respectively
     glGenVertexArrays(1, &vaoBot);
@@ -1047,7 +1048,7 @@ void render()
         glDrawElements(GL_TRIANGLES, sizeof(topHalfIndices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
     
 
-    if (halfAppear != 1) break;
+        if (halfAppear != 1) break;
     }
 
     
@@ -1112,7 +1113,6 @@ void render()
 
     if (isStabbing && halfAppear == 1) {
         for (int i = 0; i < bloodCount; i++) {
-
             normalMatrix = glm::transpose(glm::inverse(bloodMatrices[i]));
             glUniformMatrix4fv(glGetUniformLocation(shader, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projectionViewMatrix));
             glUniformMatrix4fv(glGetUniformLocation(shader, "modMatrix"), 1, GL_FALSE, glm::value_ptr(bloodMatrices[i]));
@@ -1233,10 +1233,9 @@ void processInput(GLFWwindow *window)
         if(halfAppear == 1){
             isStabbing = true;
             animationStartTime = glfwGetTime();
-        }
-        else{
+        } 
+        else
             halfAppear = 1;
-        }
     }
 
     if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)

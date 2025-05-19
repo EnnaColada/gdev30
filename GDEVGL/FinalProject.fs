@@ -4,7 +4,7 @@ in vec3 worldSpacePos;
 in vec3 worldSpaceNorm;
 in vec3 objColor;
 in vec2 shaderTexCoord;
-in float shaderPiece;
+flat in int shaderPiece;
 out vec4 fragmentColor;
 uniform sampler2D texture1;
 uniform sampler2D texture2;
@@ -38,34 +38,31 @@ void main()
 
     vec3 finalColor = lightColor * (diffColor + ambColor + specular) * attenuation;
 
-    if (shaderPiece == 1.0f){
+    if (shaderPiece == 1){
         fragmentColor = vec4(objColor, 1.0f)
                             * texture(texture1, shaderTexCoord)
                             * vec4(finalColor, 1.0f);
     }
-    else if (shaderPiece == 2.0f){
+    else if (shaderPiece == 2){
         fragmentColor = vec4(objColor * finalColor, 1.0f)
                             + texture(texture2, 
                             shaderTexCoord + vec2(0.2f*time, 0.2f*time))
                             * vec4(finalColor, 1.0f);
     } 
-    else if (shaderPiece == 3.0f){
+    else if (shaderPiece == 3){
         fragmentColor = vec4(objColor, 1.0f)
                             + texture(texture3, 
                             shaderTexCoord + vec2(0.05f*time, 0.05f*time));
     } 
-    else if (shaderPiece == 4.0f){
+    else if (shaderPiece == 4){
         vec4 texColor = texture(texture4, shaderTexCoord);
-        if (texColor.a < 0.1) {
+        if (texColor.a < 0.1)
             discard;
-        }
-        else {
-            texColor.a = 0.7f;
-        }
+        else
+            texColor.a = 0.7;
+        
         fragmentColor = texColor;
     } 
-    else {
+    else 
         fragmentColor = vec4(objColor, 1.0f) * vec4(finalColor, 1.0f);
-        
-    }
 }
